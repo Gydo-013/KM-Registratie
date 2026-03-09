@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="KM Registratie"/>
+<meta name="theme-color" content="#0b1120"/>
+<title>KM Registratie</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{height:100%;background:#0b1120}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;
+    background:#0b1120;color:#f1f5f9;min-height:100%;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  input,select,button{font-family:inherit;-webkit-appearance:none;appearance:none}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.4);cursor:pointer}
+  input[type=number]::-webkit-inner-spin-button{opacity:.4}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:#0b1120}
+  ::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+
+  /* Layout */
+  #app{display:flex;flex-direction:column;min-height:100svh}
+
+  /* Topbar */
+  .topbar{
+    background:#0f172a;border-bottom:1px solid #1e293b;
+    padding:0 16px;padding-top:env(safe-area-inset-top);
+    position:sticky;top:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    min-height:calc(52px + env(safe-area-inset-top));
+  }
+  .topbar-brand{display:flex;align-items:center;gap:10}
+  .brand-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 10px #f59e0b88}
+  .brand-title{font-size:13px;font-weight:700;letter-spacing:.08em;color:#f1f5f9}
+  .brand-sub{font-size:11px;color:#475569;margin-left:4px;font-variant-numeric:tabular-nums}
+  nav{display:flex;gap:2px}
+  .nav-btn{
+    display:flex;align-items:center;gap:6px;padding:8px 12px;
+    border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;
+    background:transparent;color:#64748b;transition:all .2s;
+  }
+  .nav-btn.active{background:#1e293b;color:#f59e0b}
+  .nav-btn svg{flex-shrink:0}
+
+  /* Pages */
+  .page{display:none;padding:24px 16px 80px;max-width:900px;margin:0 auto;width:100%}
+  .page.active{display:block}
+
+  /* Cards */
+  .card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:18px}
+  .card+.card,.card+.form-section{margin-top:12px}
+  .card-title{font-size:11px;font-weight:700;letter-spacing:.12em;color:#f59e0b;text-transform:uppercase;margin-bottom:14px}
+
+  /* Stats grid */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .stat{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px 10px;text-align:center}
+  .stat-val{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .stat-label{font-size:10px;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:.07em}
+
+  /* Form */
+  .form-grid{display:grid;gap:14px}
+  .form-grid-2{grid-template-columns:1fr 1fr}
+  @media(max-width:480px){.form-grid-2{grid-template-columns:1fr}}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:11px;font-weight:700;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase}
+  .field label .err{color:#f87171;font-weight:400;text-transform:none;font-size:10px;margin-left:4px}
+  .inp{
+    width:100%;padding:11px 14px;background:#0f172a;
+    border:1.5px solid #334155;border-radius:8px;
+    color:#f1f5f9;font-size:14px;outline:none;
+    transition:border .18s;
+  }
+  .inp:focus{border-color:#f59e0b}
+  .inp.err{border-color:#f87171}
+  .inp-wrap{position:relative}
+  .inp-wrap .inp{padding-right:40px}
+  .inp-suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#475569;font-size:12px;font-variant-numeric:tabular-nums}
+
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;gap:10;cursor:pointer;user-select:none}
+  .toggle-track{
+    position:relative;width:44px;height:24px;border-radius:12px;
+    background:#334155;transition:background .22s;flex-shrink:0;
+    border:1px solid rgba(255,255,255,.08);cursor:pointer;
+  }
+  .toggle-track.on-amber{background:#f59e0b}
+  .toggle-track.on-slate{background:#64748b}
+  .toggle-thumb{
+    position:absolute;top:3px;left:3px;width:16px;height:16px;
+    border-radius:50%;background:#fff;transition:left .22s;
+    box-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  .toggle-track.checked .toggle-thumb{left:23px}
+  .toggle-label{font-size:13px;font-weight:500}
+  .toggle-label.active{font-weight:700}
+  .toggle-group{display:flex;align-items:center;gap:12px;padding:13px 14px;background:#0f172a;border-radius:8px}
+  .toggle-divider{width:1px;height:28px;background:#334155;margin:0 4px}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:none;border-radius:8px;cursor:pointer;font-weight:600;
+    font-size:14px;padding:11px 20px;transition:all .18s;
+  }
+  .btn-primary{background:#f59e0b;color:#0f172a}
+  .btn-primary:active{background:#d97706}
+  .btn-ghost{background:transparent;color:#94a3b8;border:1.5px solid #334155;font-size:13px;padding:8px 14px}
+  .btn-ghost:active{background:#1e293b}
+  .btn-sm{font-size:12px;padding:7px 13px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+
+  /* Dropdown */
+  .dropdown{position:relative}
+  .dropdown-list{
+    position:absolute;z-index:999;top:calc(100% + 4px);left:0;right:0;
+    background:#1e293b;border:1px solid #334155;border-radius:8px;
+    overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6);
+    max-height:240px;overflow-y:auto;
+  }
+  .dropdown-item{
+    padding:10px 14px;cursor:pointer;border-bottom:1px solid #0f172a;
+    display:flex;align-items:center;gap:14px;
+  }
+  .dropdown-item:last-child{border-bottom:none}
+  .dropdown-item:active{background:#263246}
+  .dropdown-item-name{font-size:13px;color:#f1f5f9;font-weight:500}
+  .dropdown-item-sub{font-size:11px;color:#64748b;font-variant-numeric:tabular-nums}
+
+  /* Selected location pill */
+  .loc-selected{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;background:#0f172a;border:1.5px solid #f59e0b;
+    border-radius:8px;cursor:pointer;
+  }
+  .loc-selected-info{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .loc-selected-name{font-size:14px;color:#f1f5f9;font-weight:600}
+  .loc-selected-sub{font-size:12px;color:#64748b;font-variant-numeric:tabular-nums}
+  .loc-clear{color:#64748b;font-size:16px;line-height:1;padding:4px}
+
+  /* Preview bar */
+  .preview{
+    display:flex;gap:10px;flex-wrap:wrap;padding:11px 14px;
+    background:#0a1f12;border:1px solid #14532d;border-radius:8px;font-size:12px;
+  }
+  .preview span{color:#86efac}
+  .preview strong{color:#4ade80;font-variant-numeric:tabular-nums}
+  .preview .priv strong{color:#f87171}
+  .preview .priv span{color:#fca5a5}
+  .preview-dot{color:#334155}
+  .preview-note{font-size:11px;color:#f59e0b;margin-left:4px}
+
+  /* Table */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{padding:8px 10px;color:#64748b;font-weight:600;text-align:left;
+    letter-spacing:.06em;text-transform:uppercase;font-size:10px;
+    border-bottom:1px solid #334155;white-space:nowrap}
+  td{padding:9px 10px;border-bottom:1px solid rgba(15,23,42,.8);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tfoot td{border-top:2px solid #334155;border-bottom:none;font-weight:700}
+  .mono{font-variant-numeric:tabular-nums}
+  .text-right{text-align:right}
+  .badge{display:inline-block;padding:3px 7px;border-radius:4px;font-size:10px;font-weight:700}
+  .badge-werk{background:rgba(52,211,153,.12);color:#34d399}
+  .badge-priv{background:rgba(248,113,113,.12);color:#f87171}
+  .badge-omweg{background:rgba(245,158,11,.15);color:#f59e0b}
+  .del-btn{background:none;border:none;cursor:pointer;color:#334155;padding:6px;border-radius:4px}
+  .del-btn:active{color:#f87171}
+
+  /* Table header row */
+  .table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+  select.year-sel{
+    background:#0f172a;border:1.5px solid #334155;border-radius:6px;
+    color:#f1f5f9;padding:7px 12px;font-size:12px;outline:none;
+    -webkit-appearance:none;cursor:pointer;
+  }
+
+  /* Info box */
+  .info-box{display:flex;gap:12px;padding:14px;background:#0f172a;border-radius:10px;margin-top:12px}
+  .info-box-icon{color:#f59e0b;flex-shrink:0;margin-top:1px}
+  .info-box p{font-size:12px;color:#64748b;line-height:1.7}
+  .info-box strong{color:#94a3b8}
+
+  /* Locatie list */
+  .loc-list{display:flex;flex-direction:column;gap:8px}
+  .loc-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;background:#0f172a;border-radius:8px;border:1px solid #1e293b;
+  }
+  .loc-item-name{font-size:14px;color:#f1f5f9;font-weight:600}
+  .loc-item-sub{font-size:11px;color:#64748b;font-variant-numeric:tabular-nums;margin-top:2px}
+
+  /* Empty */
+  .empty{text-align:center;padding:40px 0;color:#475569;font-size:13px}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1e293b;border:1px solid #334155;border-radius:10px;
+    padding:12px 20px;font-size:13px;color:#f1f5f9;font-weight:500;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:all .3s;pointer-events:none;
+    white-space:nowrap;z-index:9999;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Divider */
+  .divider{height:1px;background:#334155;margin:4px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-dot"></div>
+      <span class="brand-title">KM REGISTRATIE</span>
+      <span class="brand-sub" id="topbar-sub"></span>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-page="ritten" onclick="showPage('ritten',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Ritten
+      </button>
+      <button class="nav-btn" data-page="locaties" onclick="showPage('locaties',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Locaties
+      </button>
+      <button class="nav-btn" data-page="voertuig" onclick="showPage('voertuig',this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
+        Voertuig
+      </button>
+    </nav>
+  </div>
+
+  <!-- RITTEN PAGE -->
+  <div class="page active" id="page-ritten">
+    <div id="priv-chart-wrap" style="display:none;margin-bottom:12px">
+      <div class="card" style="display:flex;align-items:center;gap:20;padding:20px">
+        <div style="flex-shrink:0">
+          <canvas id="donut-canvas" width="130" height="130"></canvas>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#94a3b8;text-transform:uppercase;margin-bottom:10px">Privé km <span id="donut-jaar"></span></div>
+          <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em" id="donut-used">0 km</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px">van <span id="donut-max" style="color:#94a3b8;font-weight:600"></span> toegestaan</div>
+          <div style="margin-top:12px;height:6px;background:#1e293b;border-radius:3px;overflow:hidden">
+            <div id="donut-bar" style="height:100%;border-radius:3px;transition:width .6s ease;width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px">
+            <span style="font-size:11px;color:#64748b" id="donut-resterend"></span>
+            <span style="font-size:11px;font-weight:700" id="donut-pct"></span>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #334155;font-size:11px;color:#475569" id="donut-pace"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="stat-priv" style="color:#f87171">0 km</div>
+        <div class="stat-label" id="stat-priv-label">Privé dit jaar</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-stand" style="color:#f59e0b">0 km</div>
+        <div class="stat-label">Huidige stand</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-ritten" style="color:#34d399">0</div>
+        <div class="stat-label">Ritten dit jaar</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Rit registreren</div>
+      <div class="form-grid" style="gap:14px">
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <label>Datum</label>
+            <input class="inp" type="date" id="rit-datum"/>
+          </div>
+          <div class="field">
+            <label>Eindstand km <span class="err" id="err-eindkm"></span></label>
+            <div class="inp-wrap">
+              <input class="inp" type="number" id="rit-eindkm" placeholder="bijv. 12500" inputmode="numeric"/>
+              <span class="inp-suffix">km</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Aankomstlocatie <span class="err" id="err-locatie"></span></label>
+          <div id="loc-selector">
+            <div class="dropdown" id="loc-dropdown">
+              <input class="inp" type="text" id="loc-search" placeholder="Selecteer locatie…" autocomplete="off" oninput="filterLocs()" onfocus="openLocDropdown()" onblur="closeLocDropdown()"/>
+              <div class="dropdown-list" id="loc-list-dd" style="display:none"></div>
+            </div>
+            <div id="loc-selected-pill" style="display:none" onclick="clearLoc()">
+              <div class="loc-selected">
+                <div class="loc-selected-info">
+                  <span class="loc-selected-name" id="pill-naam"></span>
+                  <span class="loc-selected-sub mono" id="pill-sub"></span>
+                </div>
+                <span class="loc-clear">✕</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-group">
+          <div class="toggle-row" onclick="toggleSwitch('isWerk')">
+            <span class="toggle-label" id="lbl-werk-off" style="color:#94a3b8">Privé</span>
+            <div class="toggle-track checked on-amber" id="track-isWerk">
+              <div class="toggle-thumb"></div>
+            </div>
+            <span class="toggle-label active" id="lbl-werk-on" style="color:#f59e0b">Werk</span>
+          </div>
+          <div class="toggle-divider"></div>
+          <div class="toggle-row" onclick="toggleSwitch('isOmweg')">
+            <span class="toggle-label" id="lbl-omweg-off" style="color:#94a3b8">Directe rit</span>
+            <div class="toggle-track" id="track-isOmweg">
+              <div class="toggle-thumb"></div>
+            </div>
+            <span class="toggle-label" id="lbl-omweg-on" style="color:#64748b">Omweg</span>
+          </div>
+        </div>
+
+        <div id="preview-bar" style="display:none" class="preview">
+          <div><span>Afgelegd: </span><strong id="prev-af">0</strong> km</div>
+          <span class="preview-dot">·</span>
+          <div><span>Werk: </span><strong id="prev-werk">0</strong> km</div>
+          <span class="preview-dot">·</span>
+          <div class="priv"><span>Privé: </span><strong id="prev-priv">0</strong> km</div>
+          <span class="preview-note" id="prev-note"></span>
+        </div>
+
+        <button class="btn btn-primary" id="btn-add-rit" onclick="addRit()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Rit opslaan
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="table-header">
+        <div class="card-title" style="margin-bottom:0">Rittenregistratie</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="year-sel" id="filter-jaar" onchange="renderTabel()"></select>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exporteer
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('csv-import-input').click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5M12 5v10M17 10l-5-5"/></svg>
+            Importeer
+          </button>
+          <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(this)"/>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="rit-table">
+          <thead>
+            <tr>
+              <th>Datum</th><th>Eindstand</th><th>Bestemming</th><th>Soort</th>
+              <th class="text-right">Afgelegd</th><th class="text-right">Werk</th><th class="text-right">Privé</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="rit-tbody"></tbody>
+          <tfoot id="rit-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="empty" id="rit-empty" style="display:none">Geen ritten geregistreerd voor dit jaar.</div>
+    </div>
+  </div>
+
+  <!-- LOCATIES PAGE -->
+  <div class="page" id="page-locaties">
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:20px;font-weight:700;color:#f1f5f9">Locaties</h2>
+      <p style="color:#64748b;font-size:13px;margin-top:5px">Beheer uw veelgebruikte adressen.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Locatie toevoegen</div>
+      <div class="form-grid" style="gap:14px">
+        <div class="field">
+          <label>Zoek adres (auto-aanvullen)</label>
+          <div id="nom-wrap" style="position:relative">
+            <input class="inp" type="text" id="nom-input" placeholder="Typ een naam, adres of postcode…" autocomplete="off" oninput="nomSearch()" onblur="setTimeout(closeNom,180)"/>
+            <div id="nom-spinner" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;border:2px solid #334155;border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite"></div>
+            <div class="dropdown-list" id="nom-list" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:999"></div>
+          </div>
+          <p style="font-size:11px;color:#475569;margin-top:3px">⚠ Vereist internetverbinding. Gegevens worden automatisch ingevuld.</p>
+        </div>
+        <div class="form-grid form-grid-2" style="gap:12px">
+          <div class="field">
+            <label>Naam *</label>
+            <input class="inp" type="text" id="loc-naam" placeholder="Naam locatie"/>
+          </div>
+          <div class="field">
+            <label>Postcode *</label>
+            <input class="inp" type="text" id="loc-pc" placeholder="1234 AB"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Plaats *</label>
+          <input class="inp" type="text" id="loc-plaats" placeholder="Amsterdam"/>
+        </div>
+        <button class="btn btn-primary" onclick="addLocatie()" style="align-self:flex-start">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Toevoegen
+        </button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="card-title" id="loc-list-title">Opgeslagen locaties (0)</div>
+      <div class="loc-list" id="loc-list-ul"></div>
+      <div class="empty" id="loc-empty">Nog geen locaties toegevoegd.</div>
+    </div>
+  </div>
+
+  <!-- VOERTUIG PAGE -->
+  <div class="page" id="page-voertuig">
+    <div style="margin-bottom:24px">
+      <h2 style="font-size:20px;font-weight:700;color:#f1f5f9">Voertuig & Instellingen</h2>
+      <p style="color:#64748b;font-size:13px;margin-top:5px">Stel uw voertuig en standaardinstellingen in.</p>
+    </div>
+
+    <div class="card">
+      <div class="form-grid" style="gap:16px">
+        <div class="field">
+          <label>Voertuignaam / kenteken</label>
+          <input class="inp" type="text" id="vt-naam" placeholder="bijv. Toyota Yaris · AB-123-C"/>
+        </div>
+        <div class="field">
+          <label>Beginstand kilometerteller</label>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vt-beginkm" placeholder="0" inputmode="numeric"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <label>Woon-werk afstand (enkele reis)</label>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Gebruikt bij omweg-berekening: woon-werk km → Werk, overige km → Privé.</p>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vt-woonwerk" placeholder="0" inputmode="numeric"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <label>Maximum privé km per jaar</label>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Wordt gebruikt voor het voortgangsdiagram op de hoofdpagina. Laat 0 staan om het diagram te verbergen.</p>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vt-maxpriv" placeholder="500" inputmode="numeric"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()" style="align-self:flex-start" id="btn-save-vt">Opslaan</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-box-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="10"/></svg>
+      </div>
+      <p><strong>Omweg-schakelaar</strong> op de hoofdpagina:<br/>
+      Als een rit als <em>omweg</em> wordt gemarkeerd, worden de ingestelde woon-werk km als <strong>werkkilometers</strong> geregistreerd en de eventuele extra km als privékilometers.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA STORE (localStorage)
+// ═══════════════════════════════════════════════════════
+const DB = {
+  get(k, def=null){ try{ const v=localStorage.getItem(k); return v!=null?JSON.parse(v):def; }catch{return def;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
+};
+
+let settings = DB.get('km-settings', { naam:'', beginKm:0, woonWerkKm:0 });
+let locaties  = DB.get('km-locaties', []);
+let ritten    = DB.get('km-ritten', []);
+
+function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); }
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='ritten') renderRitten();
+  if(id==='locaties') renderLocaties();
+  if(id==='voertuig') loadVoertuig();
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg){ 
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// ═══════════════════════════════════════════════════════
+// VOERTUIG
+// ═══════════════════════════════════════════════════════
+function loadVoertuig(){
+  document.getElementById('vt-naam').value = settings.naam||'';
+  document.getElementById('vt-beginkm').value = settings.beginKm||0;
+  document.getElementById('vt-woonwerk').value = settings.woonWerkKm||0;
+  document.getElementById('vt-maxpriv').value = settings.maxPrivKm||0;
+}
+function saveSettings(){
+  settings.naam = document.getElementById('vt-naam').value.trim();
+  settings.beginKm = parseFloat(document.getElementById('vt-beginkm').value)||0;
+  settings.woonWerkKm = parseFloat(document.getElementById('vt-woonwerk').value)||0;
+  settings.maxPrivKm = parseFloat(document.getElementById('vt-maxpriv').value)||0;
+  save();
+  updateTopbar();
+  renderRitten();
+  toast('✓ Instellingen opgeslagen');
+  const btn=document.getElementById('btn-save-vt');
+  btn.textContent='✓ Opgeslagen!'; 
+  setTimeout(()=>btn.textContent='Opslaan',2000);
+}
+function updateTopbar(){
+  document.getElementById('topbar-sub').textContent = settings.naam ? '· '+settings.naam : '';
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCATIES
+// ═══════════════════════════════════════════════════════
+let nomTimer;
+function nomSearch(){
+  const q=document.getElementById('nom-input').value.trim();
+  clearTimeout(nomTimer);
+  if(q.length<3){ document.getElementById('nom-list').style.display='none'; return; }
+  nomTimer=setTimeout(async()=>{
+    document.getElementById('nom-spinner').style.display='block';
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=nl&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`,{headers:{'Accept-Language':'nl'}});
+      const data=await r.json();
+      const list=document.getElementById('nom-list');
+      if(!data.length){ list.style.display='none'; return; }
+      list.innerHTML='';
+      data.forEach(item=>{
+        const a=item.address||{};
+        const naam=a.amenity||a.shop||a.office||a.company||a.building||a.road||item.display_name.split(',')[0];
+        const pc=a.postcode||'';
+        const pl=a.city||a.town||a.village||a.municipality||'';
+        const d=document.createElement('div');
+        d.className='dropdown-item';
+        d.innerHTML=`<div><div class="dropdown-item-name">${esc(naam)}</div><div class="dropdown-item-sub">${esc(pc)} · ${esc(pl)}</div></div>`;
+        d.onmousedown=()=>{ 
+          document.getElementById('loc-naam').value=naam;
+          document.getElementById('loc-pc').value=pc;
+          document.getElementById('loc-plaats').value=pl;
+          document.getElementById('nom-input').value='';
+          list.style.display='none';
+        };
+        list.appendChild(d);
+      });
+      list.style.display='block';
+    }catch(e){}
+    document.getElementById('nom-spinner').style.display='none';
+  },380);
+}
+function closeNom(){ document.getElementById('nom-list').style.display='none'; }
+
+function addLocatie(){
+  const naam=document.getElementById('loc-naam').value.trim();
+  const pc=document.getElementById('loc-pc').value.trim();
+  const pl=document.getElementById('loc-plaats').value.trim();
+  if(!naam||!pc||!pl){ toast('⚠ Vul naam, postcode en plaats in'); return; }
+  locaties.push({ id:Date.now(), naam, postcode:pc, plaats:pl });
+  save();
+  document.getElementById('loc-naam').value='';
+  document.getElementById('loc-pc').value='';
+  document.getElementById('loc-plaats').value='';
+  renderLocaties();
+  toast('✓ Locatie toegevoegd');
+}
+function delLocatie(id){
+  locaties=locaties.filter(l=>l.id!==id);
+  save();
+  renderLocaties();
+  renderLokDropdown();
+}
+function renderLocaties(){
+  const ul=document.getElementById('loc-list-ul');
+  const empty=document.getElementById('loc-empty');
+  document.getElementById('loc-list-title').textContent=`Opgeslagen locaties (${locaties.length})`;
+  if(!locaties.length){ ul.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  ul.innerHTML=locaties.map(l=>`
+    <div class="loc-item">
+      <div>
+        <div class="loc-item-name">${esc(l.naam)}</div>
+        <div class="loc-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
+      </div>
+      <button class="del-btn" ontouchend="delLocatie(${l.id})" onclick="delLocatie(${l.id})">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// RITTEN – state
+// ═══════════════════════════════════════════════════════
+let ritState = { isWerk:true, isOmweg:false, selLocId:null };
+
+function toggleSwitch(key){
+  ritState[key]=!ritState[key];
+  const track=document.getElementById('track-'+key);
+  track.classList.toggle('checked', ritState[key]);
+  if(key==='isWerk'){
+    const isW=ritState.isWerk;
+    track.className='toggle-track'+(isW?' checked on-amber':'');
+    document.getElementById('lbl-werk-off').style.color=!isW?'#f87171':'#94a3b8';
+    document.getElementById('lbl-werk-off').style.fontWeight=!isW?'700':'500';
+    document.getElementById('lbl-werk-off').style.setProperty('color',!isW?'#f87171':'#94a3b8');
+    document.getElementById('lbl-werk-on').style.color=isW?'#f59e0b':'#94a3b8';
+    document.getElementById('lbl-werk-on').style.fontWeight=isW?'700':'500';
+  }
+  if(key==='isOmweg'){
+    const isO=ritState.isOmweg;
+    track.className='toggle-track'+(isO?' checked on-amber':'');
+    document.getElementById('lbl-omweg-on').style.color=isO?'#f59e0b':'#64748b';
+    document.getElementById('lbl-omweg-on').style.fontWeight=isO?'700':'500';
+  }
+  updatePreview();
+}
+
+function updatePreview(){
+  const eindVal=document.getElementById('rit-eindkm').value;
+  const prevKm=getPrevKm();
+  const huidig=parseFloat(eindVal)||0;
+  const afgelegd=Math.max(0,huidig-prevKm);
+  const bar=document.getElementById('preview-bar');
+  if(!eindVal||huidig<=prevKm){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  let werk=0,priv=0;
+  if(ritState.isOmweg){
+    werk=Math.min(parseFloat(settings.woonWerkKm)||0, afgelegd);
+    priv=Math.max(0,afgelegd-werk);
+  } else {
+    werk=ritState.isWerk?afgelegd:0;
+    priv=!ritState.isWerk?afgelegd:0;
+  }
+  document.getElementById('prev-af').textContent=fmt(afgelegd);
+  document.getElementById('prev-werk').textContent=fmt(werk);
+  document.getElementById('prev-priv').textContent=fmt(priv);
+  document.getElementById('prev-note').textContent=ritState.isOmweg?`• omweg (${settings.woonWerkKm} km woon-werk)`:'';
+}
+
+function getPrevKm(){
+  return ritten.length ? ritten[ritten.length-1].eindKm : (parseFloat(settings.beginKm)||0);
+}
+
+// Location dropdown in rit form
+function renderLokDropdown(filter=''){
+  const list=document.getElementById('loc-list-dd');
+  const matches=locaties.filter(l=>
+    l.naam.toLowerCase().includes(filter.toLowerCase())||
+    l.postcode.toLowerCase().includes(filter.toLowerCase())||
+    l.plaats.toLowerCase().includes(filter.toLowerCase())
+  );
+  if(!matches.length){ list.style.display='none'; return; }
+  list.innerHTML=matches.map(l=>`
+    <div class="dropdown-item" onmousedown="selectLoc(${l.id})">
+      <div class="dropdown-item-name">${esc(l.naam)}</div>
+      <div class="dropdown-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
+    </div>`).join('');
+  list.style.display='block';
+}
+function filterLocs(){ renderLokDropdown(document.getElementById('loc-search').value); }
+function openLocDropdown(){ if(locaties.length) renderLokDropdown(document.getElementById('loc-search').value||''); }
+function closeLocDropdown(){ setTimeout(()=>document.getElementById('loc-list-dd').style.display='none',160); }
+
+function selectLoc(id){
+  ritState.selLocId=id;
+  const loc=locaties.find(l=>l.id===id);
+  document.getElementById('loc-search').style.display='none';
+  document.getElementById('loc-list-dd').style.display='none';
+  document.getElementById('loc-selected-pill').style.display='block';
+  document.getElementById('pill-naam').textContent=loc.naam;
+  document.getElementById('pill-sub').textContent=loc.postcode+' · '+loc.plaats;
+  document.getElementById('err-locatie').textContent='';
+}
+function clearLoc(){
+  ritState.selLocId=null;
+  document.getElementById('loc-search').style.display='block';
+  document.getElementById('loc-search').value='';
+  document.getElementById('loc-selected-pill').style.display='none';
+}
+
+function addRit(){
+  const datum=document.getElementById('rit-datum').value;
+  const eindVal=document.getElementById('rit-eindkm').value;
+  const prevKm=getPrevKm();
+  const huidig=parseFloat(eindVal)||0;
+  let ok=true;
+
+  if(!datum){ ok=false; }
+  if(!eindVal||isNaN(huidig)||huidig<=prevKm){
+    document.getElementById('err-eindkm').textContent=`moet > ${fmt(prevKm)} km zijn`;
+    document.getElementById('rit-eindkm').classList.add('err');
+    ok=false;
+  } else {
+    document.getElementById('err-eindkm').textContent='';
+    document.getElementById('rit-eindkm').classList.remove('err');
+  }
+  if(!ritState.selLocId){
+    document.getElementById('err-locatie').textContent='Selecteer een locatie';
+    ok=false;
+  } else {
+    document.getElementById('err-locatie').textContent='';
+  }
+  if(!ok) return;
+
+  const afgelegd=huidig-prevKm;
+  let werkKm=0,privKm=0;
+  if(ritState.isOmweg){
+    werkKm=Math.min(parseFloat(settings.woonWerkKm)||0,afgelegd);
+    privKm=Math.max(0,afgelegd-werkKm);
+  } else {
+    werkKm=ritState.isWerk?afgelegd:0;
+    privKm=!ritState.isWerk?afgelegd:0;
+  }
+  const loc=locaties.find(l=>l.id===ritState.selLocId);
+  ritten.push({
+    id:Date.now(), datum, eindKm:huidig,
+    locatieId:loc.id, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
+    isWerk:ritState.isWerk, isOmweg:ritState.isOmweg,
+    afgelegdKm:afgelegd, werkKm, privKm
+  });
+  save();
+
+  // Reset form
+  document.getElementById('rit-eindkm').value='';
+  document.getElementById('preview-bar').style.display='none';
+  clearLoc();
+  ritState.isWerk=true; ritState.isOmweg=false;
+  document.getElementById('track-isWerk').className='toggle-track checked on-amber';
+  document.getElementById('track-isOmweg').className='toggle-track';
+  document.getElementById('lbl-werk-on').style.color='#f59e0b';
+  document.getElementById('lbl-werk-off').style.color='#94a3b8';
+  document.getElementById('lbl-omweg-on').style.color='#64748b';
+
+  renderRitten();
+  toast('✓ Rit opgeslagen');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER RITTEN
+// ═══════════════════════════════════════════════════════
+function renderRitten(){
+  updateStats();
+  buildYearFilter();
+  renderTabel();
+}
+
+function updateStats(){
+  const yr=new Date().getFullYear();
+  const yrRitten=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
+  const totalPriv=yrRitten.reduce((s,r)=>s+(r.privKm||0),0);
+  const stand=getPrevKm();
+  document.getElementById('stat-priv').textContent=fmt(totalPriv)+' km';
+  document.getElementById('stat-stand').textContent=fmt(stand)+' km';
+  document.getElementById('stat-ritten').textContent=yrRitten.length;
+  renderDonut(totalPriv, yr);
+}
+
+function renderDonut(used, yr){
+  const max=parseFloat(settings.maxPrivKm)||0;
+  const wrap=document.getElementById('priv-chart-wrap');
+  if(!max){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+
+  // Pace berekening
+  const now=new Date();
+  const isHuidigJaar=yr===now.getFullYear();
+  const daysInYear=((yr%4===0&&yr%100!==0)||yr%400===0)?366:365;
+  const dayOfYear=isHuidigJaar
+    ? Math.floor((now - new Date(yr,0,1)) / 86400000)+1
+    : daysInYear;
+  const kmPerDag=max/daysInYear;
+  const verwacht=kmPerDag*dayOfYear;          // wat je op dit moment "had mogen rijden"
+  const pct=Math.min(1,used/max);             // voor de boog zelf
+  const verschil=used-verwacht;               // positief = te veel, negatief = ruimte over
+  const over=used>max;
+
+  // Kleur op basis van pace, niet simpele drempel
+  let color;
+  if(over){
+    color='#f87171'; // boven jaarlimiet
+  } else if(verschil>kmPerDag*7){
+    color='#f87171'; // meer dan een week voor op pace
+  } else if(verschil>kmPerDag*3){
+    color='#fb923c'; // 3–7 dagen voor op pace
+  } else if(verschil>0){
+    color='#f59e0b'; // licht voor op pace
+  } else {
+    color='#34d399'; // op of onder pace
+  }
+
+  const resterend=Math.max(0,max-used);
+  const dagResterend=isHuidigJaar ? Math.max(1, daysInYear-dayOfYear) : 0;
+  const nogPerDag=dagResterend>0 ? resterend/dagResterend : 0;
+
+  // Texts
+  document.getElementById('donut-jaar').textContent=yr;
+  document.getElementById('donut-used').textContent=fmt(used)+' km';
+  document.getElementById('donut-used').style.color=color;
+  document.getElementById('donut-max').textContent=fmt(max)+' km';
+  document.getElementById('donut-bar').style.width=(Math.min(pct,1)*100)+'%';
+  document.getElementById('donut-bar').style.background=color;
+  document.getElementById('donut-pct').textContent=Math.round(pct*100)+'%';
+  document.getElementById('donut-pct').style.color=color;
+
+  let statusTekst='';
+  if(over){
+    statusTekst=`⚠ ${fmt(Math.round(used-max))} km over jaarlimiet`;
+  } else if(isHuidigJaar){
+    if(verschil>0){
+      statusTekst=`↑ ${fmt(Math.round(verschil))} km boven dagtempo (${verschil>0?'+':''}${(verschil/kmPerDag).toFixed(1)} dagen)`;
+    } else {
+      statusTekst=`✓ ${fmt(Math.round(Math.abs(verschil)))} km onder dagtempo — nog ${fmt(Math.round(nogPerDag))} km/dag beschikbaar`;
+    }
+  } else {
+    statusTekst=`Nog ${fmt(resterend)} km over`;
+  }
+  document.getElementById('donut-resterend').textContent=statusTekst;
+  document.getElementById('donut-resterend').style.color=over||verschil>0?color:'#64748b';
+
+  // Pace indicator tekst onder de km
+  const paceEl=document.getElementById('donut-pace');
+  if(paceEl && isHuidigJaar){
+    paceEl.textContent=`Budget: ${kmPerDag.toFixed(1)} km/dag · Verwacht t/m vandaag: ${fmt(Math.round(verwacht))} km`;
+  }
+
+  // Canvas donut
+  const canvas=document.getElementById('donut-canvas');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=130*dpr; canvas.height=130*dpr;
+  canvas.style.width='130px'; canvas.style.height='130px';
+  ctx.scale(dpr,dpr);
+
+  const cx=65, cy=65, r=52, lw=13;
+  const startAngle=-Math.PI/2;
+  const endAngle=startAngle+(2*Math.PI*Math.min(pct,1));
+
+  // Verwacht-arc (lichte achtergrond tot huidig dagtempo)
+  if(isHuidigJaar && verwacht>0 && verwacht<max){
+    const verwachtPct=Math.min(1,verwacht/max);
+    const verwachtEnd=startAngle+(2*Math.PI*verwachtPct);
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,startAngle,verwachtEnd);
+    ctx.strokeStyle='#2d3f55';
+    ctx.lineWidth=lw;
+    ctx.lineCap='round';
+    ctx.stroke();
+  }
+
+  // Track
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,2*Math.PI);
+  ctx.strokeStyle='#1e293b';
+  ctx.lineWidth=lw;
+  ctx.stroke();
+
+  // Value arc
+  if(pct>0){
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,startAngle,endAngle);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=lw;
+    ctx.lineCap='round';
+    ctx.stroke();
+  }
+
+  // Center text
+  ctx.fillStyle=color;
+  ctx.font=`700 15px -apple-system,sans-serif`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(Math.round(pct*100)+'%', cx, cy-8);
+  ctx.fillStyle='#64748b';
+  ctx.font='11px -apple-system,sans-serif';
+  ctx.fillText('privé', cx, cy+10);
+}
+
+function buildYearFilter(){
+  const sel=document.getElementById('filter-jaar');
+  const jaren=[...new Set(ritten.map(r=>new Date(r.datum).getFullYear()))].sort((a,b)=>b-a);
+  const yr=new Date().getFullYear();
+  if(!jaren.includes(yr)) jaren.unshift(yr);
+  const cur=parseInt(sel.value)||yr;
+  sel.innerHTML=jaren.map(j=>`<option value="${j}"${j===cur?' selected':''}>${j}</option>`).join('');
+}
+
+function renderTabel(){
+  const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
+  const filtered=[...ritten].filter(r=>new Date(r.datum).getFullYear()===yr).reverse();
+  const tbody=document.getElementById('rit-tbody');
+  const tfoot=document.getElementById('rit-tfoot');
+  const empty=document.getElementById('rit-empty');
+  const table=document.getElementById('rit-table');
+
+  if(!filtered.length){
+    tbody.innerHTML=''; tfoot.innerHTML='';
+    table.style.display='none'; empty.style.display='block'; return;
+  }
+  table.style.display=''; empty.style.display='none';
+
+  tbody.innerHTML=filtered.map((r,i)=>`
+    <tr style="${i%2?'background:rgba(15,23,42,.35)':''}">
+      <td class="mono" style="color:#94a3b8;white-space:nowrap">${r.datum}</td>
+      <td class="mono" style="color:#f1f5f9">${fmt(r.eindKm)}</td>
+      <td>
+        <div style="font-size:13px;color:#f1f5f9;font-weight:500">${esc(r.locatieNaam)}</div>
+        <div class="mono" style="font-size:11px;color:#475569">${esc(r.locatiePostcode)} · ${esc(r.locatiePlaats)}</div>
+      </td>
+      <td><span class="badge ${r.isOmweg?'badge-omweg':r.isWerk?'badge-werk':'badge-priv'}">${r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé'}</span></td>
+      <td class="mono text-right">${fmt(r.afgelegdKm)}</td>
+      <td class="mono text-right" style="color:#34d399">${fmt(r.werkKm||0)}</td>
+      <td class="mono text-right" style="color:#f87171">${fmt(r.privKm||0)}</td>
+      <td><button class="del-btn" ontouchend="delRit(${r.id})" onclick="delRit(${r.id})">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+      </button></td>
+    </tr>`).join('');
+
+  const totW=filtered.reduce((s,r)=>s+(r.werkKm||0),0);
+  const totP=filtered.reduce((s,r)=>s+(r.privKm||0),0);
+  const totA=filtered.reduce((s,r)=>s+(r.afgelegdKm||0),0);
+  tfoot.innerHTML=`<tr>
+    <td colspan="4" style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Totaal ${yr}</td>
+    <td class="mono text-right" style="color:#f1f5f9">${fmt(totA)}</td>
+    <td class="mono text-right" style="color:#34d399">${fmt(totW)}</td>
+    <td class="mono text-right" style="color:#f87171">${fmt(totP)}</td>
+    <td></td>
+  </tr>`;
+}
+
+function delRit(id){
+  ritten=ritten.filter(r=>r.id!==id);
+  save();
+  renderRitten();
+  toast('Rit verwijderd');
+}
+
+// ═══════════════════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════════════════
+function exportCSV(){
+  const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
+  const filtered=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
+  if(!filtered.length){ toast('Geen ritten om te exporteren'); return; }
+  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km']];
+  filtered.forEach(r=>rows.push([
+    r.datum, r.eindKm, r.locatieNaam, r.locatiePostcode, r.locatiePlaats,
+    r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé',
+    r.isOmweg?'Ja':'Nee',
+    r.afgelegdKm, r.werkKm||0, r.privKm||0
+  ]));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`km-registratie-${yr}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ CSV gedownload');
+}
+
+// ═══════════════════════════════════════════════════════
+// CSV IMPORT
+// ═══════════════════════════════════════════════════════
+function importCSV(input){
+  const file=input.files[0];
+  if(!file){ return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,''); // strip BOM
+      const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+      if(lines.length<2){ toast('⚠ CSV lijkt leeg'); return; }
+
+      // Parse header to find column indices
+      const header=parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
+      const col=name=>header.indexOf(name);
+
+      const iDatum    = col('datum');
+      const iEindKm   = col('eindstand km');
+      const iNaam     = col('locatie');
+      const iPc       = col('postcode');
+      const iPlaats   = col('plaats');
+      const iSoort    = col('soort');
+      const iOmweg    = col('omweg');
+      const iAfgelegd = col('totaal km');
+      const iWerk     = col('werk km');
+      const iPriv     = col('privé km');
+
+      if(iDatum===-1||iEindKm===-1){ toast('⚠ Ongeldig CSV-formaat'); return; }
+
+      const imported=[];
+      for(let i=1;i<lines.length;i++){
+        const c=parseCSVRow(lines[i]);
+        if(c.length<3) continue;
+        const soort=(c[iSoort]||'').toLowerCase();
+        const isOmweg=(c[iOmweg]||'').toLowerCase()==='ja';
+        const isWerk=isOmweg||soort==='werk';
+        const eindKm=parseFloat((c[iEindKm]||'').replace(',','.'))||0;
+        if(!eindKm) continue;
+        imported.push({
+          id: Date.now()+i,
+          datum:        c[iDatum]||'',
+          eindKm,
+          locatieNaam:     c[iNaam]||'',
+          locatiePostcode: iPc>-1?c[iPc]||'':'',
+          locatiePlaats:   iPlaats>-1?c[iPlaats]||'':'',
+          locatieId:    null,
+          isWerk,
+          isOmweg,
+          afgelegdKm: parseFloat((c[iAfgelegd]||'0').replace(',','.'))||0,
+          werkKm:     parseFloat((c[iWerk]||'0').replace(',','.'))||0,
+          privKm:     parseFloat((c[iPriv]||'0').replace(',','.'))||0,
+        });
+      }
+
+      if(!imported.length){ toast('⚠ Geen geldige rijen gevonden'); return; }
+
+      // Merge: skip rows with same datum + eindKm that already exist
+      const existing=new Set(ritten.map(r=>r.datum+'|'+r.eindKm));
+      const nieuw=imported.filter(r=>!existing.has(r.datum+'|'+r.eindKm));
+      const dupes=imported.length-nieuw.length;
+
+      ritten=[...ritten,...nieuw].sort((a,b)=>a.datum.localeCompare(b.datum));
+      save();
+      renderRitten();
+      input.value='';
+
+      let msg=`✓ ${nieuw.length} rijen geïmporteerd`;
+      if(dupes) msg+=` (${dupes} al aanwezig overgeslagen)`;
+      toast(msg);
+    }catch(err){
+      toast('⚠ Fout bij importeren: '+err.message);
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function parseCSVRow(row){
+  const result=[]; let cur=''; let inQ=false;
+  for(let i=0;i<row.length;i++){
+    const ch=row[i];
+    if(ch==='"'){ inQ=!inQ; }
+    else if(ch===','&&!inQ){ result.push(cur); cur=''; }
+    else{ cur+=ch; }
+  }
+  result.push(cur);
+  return result.map(s=>s.replace(/^"|"$/g,'').replace(/""/g,'"'));
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function fmt(n){ return Number(n).toLocaleString('nl-NL'); }
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Set today's date
+  document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
+  // Init
+  updateTopbar();
+  renderRitten();
+  renderLocaties();
+  loadVoertuig();
+  // Km input live preview
+  document.getElementById('rit-eindkm').addEventListener('input', updatePreview);
+});
+</script>
+</body>
+</html>
