@@ -414,6 +414,11 @@
           <span class="preview-note" id="prev-note"></span>
         </div>
 
+        <div class="field">
+          <label>Opmerking <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(optioneel)</span></label>
+          <input class="inp" type="text" id="rit-opmerking" placeholder="Bijv. klantbezoek, tankbeurt…"/>
+        </div>
+
         <button class="btn btn-primary" id="btn-add-rit" onclick="addRit()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Rit opslaan
@@ -655,6 +660,11 @@
             <button id="edit-btn-werkwoon" class="btn btn-ghost btn-sm" onclick="setEditRichting('werkwoon')">🏢→🏠 Werk-woon</button>
           </div>
         </div>
+      </div>
+
+      <div class="field">
+        <label>Opmerking <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(optioneel)</span></label>
+        <input class="inp" type="text" id="edit-opmerking" placeholder="Bijv. klantbezoek, tankbeurt…"/>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:4px">
@@ -1058,17 +1068,19 @@ function addRit(){
   privKm=Math.round(privKm*10)/10;
 
   const loc = overige || locaties.find(l=>l.id===ritState.selLocId);
+  const opmerking = document.getElementById('rit-opmerking').value.trim();
   ritten.push({
     id:Date.now(), datum, eindKm:huidig,
     locatieId: loc.id||null, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
     isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
-    afgelegdKm:afgelegd, werkKm, privKm
+    afgelegdKm:afgelegd, werkKm, privKm, opmerking
   });
   save();
   appendRitToSheet(ritten[ritten.length-1]);
 
   // Reset form
   document.getElementById('rit-eindkm').value='';
+  document.getElementById('rit-opmerking').value='';
   document.getElementById('preview-bar').style.display='none';
   clearLoc();
   ritState.isWerk=true; ritState.isOmweg=false; ritState.omwegRichting='woonwerk';
@@ -1261,6 +1273,7 @@ function renderTabel(){
       <td>
         <div style="font-size:13px;color:#f1f5f9;font-weight:500">${esc(r.locatieNaam)}</div>
         <div class="mono" style="font-size:11px;color:#475569">${esc(r.locatiePostcode)} · ${esc(r.locatiePlaats)}</div>
+        ${r.opmerking?`<div style="font-size:11px;color:#64748b;margin-top:2px;font-style:italic">${esc(r.opmerking)}</div>`:''}
       </td>
       <td><span class="badge ${r.isOmweg?'badge-omweg':r.isWerk?'badge-werk':'badge-priv'}">${r.isOmweg?(r.omwegRichting==='werkwoon'?'Werk→Woon':'Woon→Werk'):r.isWerk?'Werk':'Privé'}</span></td>
       <td class="mono text-right">${fmt(r.afgelegdKm)}</td>
@@ -1309,6 +1322,7 @@ function openEditModal(id){
 
   document.getElementById('edit-datum').value = r.datum;
   document.getElementById('edit-eindkm').value = r.eindKm;
+  document.getElementById('edit-opmerking').value = r.opmerking||'';
 
   // Locatie pill
   if(r.locatieNaam){
@@ -1408,6 +1422,7 @@ function saveEditRit(){
 
   const datum   = document.getElementById('edit-datum').value;
   const eindKm  = parseFloat(document.getElementById('edit-eindkm').value)||0;
+  const opmerking = document.getElementById('edit-opmerking').value.trim();
   if(!datum||!eindKm){ toast('⚠ Vul datum en eindstand in'); return; }
 
   const isWerk  = document.getElementById('edit-track-isWerk').classList.contains('checked');
@@ -1436,7 +1451,7 @@ function saveEditRit(){
     locatieNaam:    loc ? loc.naam      : ritten[idx].locatieNaam,
     locatiePostcode:loc ? loc.postcode  : ritten[idx].locatiePostcode,
     locatiePlaats:  loc ? loc.plaats    : ritten[idx].locatiePlaats,
-    afgelegdKm: afgelegd, werkKm, privKm,
+    afgelegdKm: afgelegd, werkKm, privKm, opmerking,
   };
 
   save();
@@ -1452,12 +1467,12 @@ function exportCSV(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
   const filtered=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
   if(!filtered.length){ toast('Geen ritten om te exporteren'); return; }
-  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km']];
+  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km','Opmerking']];
   filtered.forEach(r=>rows.push([
     r.datum, r.eindKm, r.locatieNaam, r.locatiePostcode, r.locatiePlaats,
     r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé',
     r.isOmweg?'Ja':'Nee',
-    r.afgelegdKm, r.werkKm||0, r.privKm||0
+    r.afgelegdKm, r.werkKm||0, r.privKm||0, r.opmerking||''
   ]));
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
