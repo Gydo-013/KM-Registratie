@@ -268,7 +268,7 @@
     <div class="topbar-brand">
       <div class="brand-dot"></div>
       <span class="brand-title">KM REGISTRATIE</span>
-      <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;letter-spacing:.06em;user-select:none;pointer-events:none;background:var(--clr-card);padding:2px 6px;border-radius:4px;border:1px solid #334155">v1.35</span>
+      <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;letter-spacing:.06em;user-select:none;pointer-events:none;background:var(--clr-card);padding:2px 6px;border-radius:4px;border:1px solid #334155">v1.36</span>
       <span class="brand-sub" id="topbar-sub"></span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -666,6 +666,7 @@
     <div class="info-box" style="margin-top:12px">
       <div style="font-size:11px;color:#334155;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Versiegeschiedenis</div>
       <div style="font-size:11px;color:#334155;line-height:1.8;user-select:none;pointer-events:none">
+        <div><span style="color:#3d5068;font-weight:600">v1.36</span> &nbsp;Tabblad Verbruik: tankbeurten, laden, grafiek</div>
         <div><span style="color:#3d5068;font-weight:600">v1.35</span> &nbsp;Voertuigkleur, 4e modus &quot;Voertuig kleur&quot;, Auto systeem-aware</div>
         <div><span style="color:#3d5068;font-weight:600">v1.34</span> &nbsp;Licht/Donker/Auto kleurmodus + versienummer zichtbaar</div>
         <div><span style="color:#3d5068;font-weight:600">v1.33</span> &nbsp;App instellingen: thema + brandstoftype voertuig</div>
@@ -982,11 +983,140 @@
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
     Overzicht
   </button>
+  <button class="nav-btn" data-page="verbruik" onclick="showPage('verbruik',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+    Verbruik
+  </button>
   <button class="nav-btn" data-page="instellingen" onclick="showPage('instellingen',this)">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     Instellingen
   </button>
 </nav>
+
+<!-- VERBRUIK PAGE -->
+<div class="page" id="page-verbruik" style="padding-top:8px">
+
+  <!-- Stats row -->
+  <div class="stats" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px">
+    <div class="stat">
+      <div class="stat-val" id="vb-gem-verbruik" style="color:var(--clr-accent)">–</div>
+      <div class="stat-label" id="vb-verbruik-label">per 100 km</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="vb-totaal-kosten" style="color:#34d399">€ –</div>
+      <div class="stat-label">Totaal kosten</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="vb-kosten-per-km" style="color:#f87171">€ –</div>
+      <div class="stat-label">Per km</div>
+    </div>
+  </div>
+
+  <!-- Invoer -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" id="vb-form-title">Tankbeurt / Lading toevoegen</div>
+    <input type="hidden" id="vb-edit-id"/>
+    <div class="form-grid" style="gap:14px">
+
+      <!-- Type -->
+      <div class="field">
+        <label>Type</label>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="vb-type-btn btn btn-ghost btn-sm" data-type="brandstof" onclick="setVbType('brandstof')">⛽ Tankbeurt</button>
+          <button type="button" class="vb-type-btn btn btn-ghost btn-sm" data-type="elektrisch" onclick="setVbType('elektrisch')">⚡ Laden</button>
+          <button type="button" class="vb-type-btn btn btn-ghost btn-sm" data-type="overig" onclick="setVbType('overig')">🔧 Overig</button>
+        </div>
+      </div>
+
+      <div class="form-grid form-grid-2" style="gap:10px">
+        <div class="field">
+          <label>Datum</label>
+          <input class="inp" type="date" id="vb-datum"/>
+        </div>
+        <div class="field">
+          <label>Kilometerstand</label>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vb-km" inputmode="numeric" placeholder="bijv. 36500"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid form-grid-2" style="gap:10px">
+        <div class="field" id="vb-hoeveelheid-field">
+          <label id="vb-hoeveelheid-label">Hoeveelheid</label>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vb-hoeveelheid" inputmode="decimal" step="0.01" placeholder="0.00"/>
+            <span class="inp-suffix" id="vb-hoeveelheid-suffix">L</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Totaalprijs</label>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vb-prijs" inputmode="decimal" step="0.01" placeholder="0.00"/>
+            <span class="inp-suffix">€</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid form-grid-2" style="gap:10px">
+        <div class="field" id="vb-vol-field">
+          <label>Vol getankt?</label>
+          <div class="toggle-group" onclick="toggleVbVol()" style="cursor:pointer">
+            <span style="font-size:13px;color:#94a3b8">Gedeeltelijk</span>
+            <div class="toggle-track" id="vb-vol-track"><div class="toggle-thumb"></div></div>
+            <span style="font-size:13px" id="vb-vol-label">Vol</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Locatie <span style="font-weight:400;text-transform:none;font-size:10px;color:#475569">(optioneel)</span></label>
+          <input class="inp" type="text" id="vb-locatie" placeholder="bijv. Shell A58"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Opmerking <span style="font-weight:400;text-transform:none;font-size:10px;color:#475569">(optioneel)</span></label>
+        <input class="inp" type="text" id="vb-opmerking" placeholder=""/>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="saveVerbruik()" style="flex:1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span id="vb-save-label">Opslaan</span>
+        </button>
+        <button class="btn btn-ghost" id="vb-cancel-btn" onclick="cancelEditVerbruik()" style="display:none">Annuleren</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grafiek -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Verbruik over tijd</div>
+    <canvas id="vb-chart" style="width:100%;height:180px"></canvas>
+    <div id="vb-chart-empty" style="display:none;text-align:center;color:#475569;font-size:13px;padding:20px 0">Nog geen gegevens</div>
+  </div>
+
+  <!-- Lijst -->
+  <div class="card">
+    <div class="card-title">Historie</div>
+    <div style="overflow-x:auto">
+      <table class="rit-table" id="vb-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Datum</th><th>Voertuig</th><th>Type</th>
+            <th class="text-right">Km-stand</th>
+            <th class="text-right" id="vb-th-hoeveelheid">Liters</th>
+            <th class="text-right">Kosten</th>
+            <th class="text-right">Verbruik</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="vb-tbody"></tbody>
+      </table>
+      <div class="empty" id="vb-empty">Nog geen tankbeurten of ladingen geregistreerd.</div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -997,6 +1127,7 @@
   .swatch.selected{border-color:#fff;transform:scale(1.15)}
   .theme-mode-btn{flex:1;padding:10px 8px;border-radius:8px;border:1.5px solid #334155;background:transparent;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;font-family:inherit}
   .theme-mode-btn.active{background:var(--clr-accent);color:var(--clr-surface);border-color:var(--clr-accent)}
+  .vb-type-btn.active{background:var(--clr-accent)!important;color:var(--clr-surface)!important;border-color:var(--clr-accent)!important}
   /* Licht thema overrides */
   [data-color-mode="light"] body{color:#0f172a}
   [data-color-mode="light"] .card{border-color:var(--clr-border,#cbd5e1)}
@@ -1023,10 +1154,11 @@ const DB = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
 };
 
-let settings  = DB.get('km-settings', { woonWerkKm:0, werkWoonKm:0, maxPrivKm:0, actieveVoertuigId:null });
-let locaties  = DB.get('km-locaties', []);
-let ritten    = DB.get('km-ritten', []);
-let voertuigen= DB.get('km-voertuigen', []);
+let settings   = DB.get('km-settings', { woonWerkKm:0, werkWoonKm:0, maxPrivKm:0, actieveVoertuigId:null });
+let locaties   = DB.get('km-locaties', []);
+let ritten     = DB.get('km-ritten', []);
+let voertuigen = DB.get('km-voertuigen', []);
+let verbruiken = DB.get('km-verbruiken', []);
 
 // Migratie: oude 'naam'/'beginKm' settings omzetten naar voertuig
 if(!voertuigen.length && (settings.naam || settings.beginKm)){
@@ -1036,7 +1168,7 @@ if(!voertuigen.length && (settings.naam || settings.beginKm)){
   DB.set('km-voertuigen', voertuigen);
 }
 
-function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); DB.set('km-voertuigen',voertuigen); }
+function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); DB.set('km-voertuigen',voertuigen); DB.set('km-verbruiken',verbruiken); }
 function getActiefVoertuig(){ return voertuigen.find(v=>v.id===settings.actieveVoertuigId) || voertuigen[0] || null; }
 
 // ═══════════════════════════════════════════════════════
@@ -1057,6 +1189,7 @@ function showPage(id, btn){
   if(id==='locaties')  renderLocaties();
   if(id==='voertuig')  loadVoertuig();
   if(id==='overzicht') loadOverzicht();
+  if(id==='verbruik')  loadVerbruik();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2595,6 +2728,270 @@ function renderBrandstofBtns(){
 function loadBrandstofVoertuig(v){
   selectedBrandstof = v?.brandstof ? [...v.brandstof] : [];
   renderBrandstofBtns();
+}
+
+// ═══════════════════════════════════════════════════════
+// VERBRUIK
+// ═══════════════════════════════════════════════════════
+let vbState = { type:'brandstof', vol:true };
+
+function setVbType(type){
+  vbState.type = type;
+  document.querySelectorAll('.vb-type-btn').forEach(b=>b.classList.toggle('active', b.dataset.type===type));
+  const isElec = type==='elektrisch';
+  const isOverig = type==='overig';
+  document.getElementById('vb-hoeveelheid-label').textContent = isElec ? 'Hoeveelheid' : isOverig ? 'Hoeveelheid' : 'Liters';
+  document.getElementById('vb-hoeveelheid-suffix').textContent = isElec ? 'kWh' : isOverig ? '' : 'L';
+  document.getElementById('vb-hoeveelheid-field').style.display = isOverig ? 'none' : 'flex';
+  document.getElementById('vb-vol-field').style.display = isOverig || isElec ? 'none' : 'flex';
+}
+
+function toggleVbVol(){
+  vbState.vol = !vbState.vol;
+  const track = document.getElementById('vb-vol-track');
+  const lbl   = document.getElementById('vb-vol-label');
+  track.className = 'toggle-track' + (vbState.vol ? ' checked on-amber' : '');
+  lbl.style.color = vbState.vol ? 'var(--clr-accent)' : '#64748b';
+}
+
+function saveVerbruik(){
+  const datum      = document.getElementById('vb-datum').value;
+  const km         = parseFloat(document.getElementById('vb-km').value)||0;
+  const hoeveelheid= parseFloat(document.getElementById('vb-hoeveelheid').value)||0;
+  const prijs      = parseFloat(document.getElementById('vb-prijs').value)||0;
+  const locatie    = document.getElementById('vb-locatie').value.trim();
+  const opmerking  = document.getElementById('vb-opmerking').value.trim();
+  if(!datum){ toast('⚠ Vul een datum in'); return; }
+  if(!km)   { toast('⚠ Vul de kilometerstand in'); return; }
+
+  const av = getActiefVoertuig();
+  const editId = document.getElementById('vb-edit-id').value;
+
+  const entry = {
+    id: editId ? parseInt(editId) : Date.now(),
+    datum, km, hoeveelheid, prijs, locatie, opmerking,
+    type: vbState.type,
+    vol:  vbState.vol,
+    voertuigId: av?.id||null,
+    voertuigLabel: av ? ([av.merk,av.type].filter(Boolean).join(' ')||av.kenteken||'') : '',
+  };
+
+  if(editId){
+    const idx = verbruiken.findIndex(v=>v.id===parseInt(editId));
+    if(idx!==-1) verbruiken[idx]=entry;
+    toast('✓ Gewijzigd');
+  } else {
+    verbruiken.push(entry);
+    toast('✓ Opgeslagen');
+  }
+  save();
+  cancelEditVerbruik();
+  renderVerbruik();
+}
+
+function editVerbruik(id){
+  const v = verbruiken.find(v=>v.id===id);
+  if(!v) return;
+  document.getElementById('vb-edit-id').value   = v.id;
+  document.getElementById('vb-datum').value      = v.datum;
+  document.getElementById('vb-km').value         = v.km;
+  document.getElementById('vb-hoeveelheid').value= v.hoeveelheid||'';
+  document.getElementById('vb-prijs').value      = v.prijs||'';
+  document.getElementById('vb-locatie').value    = v.locatie||'';
+  document.getElementById('vb-opmerking').value  = v.opmerking||'';
+  vbState.vol = v.vol!==false;
+  setVbType(v.type||'brandstof');
+  const track=document.getElementById('vb-vol-track');
+  const lbl  =document.getElementById('vb-vol-label');
+  track.className='toggle-track'+(vbState.vol?' checked on-amber':'');
+  lbl.style.color=vbState.vol?'var(--clr-accent)':'#64748b';
+  document.getElementById('vb-form-title').textContent='Beurt aanpassen';
+  document.getElementById('vb-save-label').textContent='Wijzigingen opslaan';
+  document.getElementById('vb-cancel-btn').style.display='inline-flex';
+  document.getElementById('vb-form-title').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function cancelEditVerbruik(){
+  document.getElementById('vb-edit-id').value='';
+  document.getElementById('vb-datum').value='';
+  document.getElementById('vb-km').value='';
+  document.getElementById('vb-hoeveelheid').value='';
+  document.getElementById('vb-prijs').value='';
+  document.getElementById('vb-locatie').value='';
+  document.getElementById('vb-opmerking').value='';
+  vbState.vol=true;
+  setVbType('brandstof');
+  const track=document.getElementById('vb-vol-track');
+  const lbl  =document.getElementById('vb-vol-label');
+  track.className='toggle-track checked on-amber';
+  lbl.style.color='var(--clr-accent)';
+  document.getElementById('vb-form-title').textContent='Tankbeurt / Lading toevoegen';
+  document.getElementById('vb-save-label').textContent='Opslaan';
+  document.getElementById('vb-cancel-btn').style.display='none';
+}
+
+function delVerbruik(id){
+  if(!confirm('Verwijderen?')) return;
+  verbruiken=verbruiken.filter(v=>v.id!==id);
+  save(); renderVerbruik(); toast('✓ Verwijderd');
+}
+
+function loadVerbruik(){
+  const now=new Date();
+  const dEl=document.getElementById('vb-datum');
+  if(!dEl.value) dEl.value=now.toISOString().split('T')[0];
+  setVbType(vbState.type);
+  renderVerbruik();
+}
+
+function renderVerbruik(){
+  const av = getActiefVoertuig();
+  const vtId = av?.id||null;
+  // Filter op actief voertuig
+  const vbs = [...verbruiken]
+    .filter(v=>v.voertuigId===vtId)
+    .sort((a,b)=>b.datum.localeCompare(a.datum));
+
+  // Stats
+  const totalKosten = vbs.reduce((s,v)=>s+(v.prijs||0),0);
+  // Verbruik berekenen: alleen vol-tankbeurten in volgorde
+  const volBeurten = [...vbs].filter(v=>v.vol&&v.hoeveelheid&&v.type!=='overig').sort((a,b)=>a.datum.localeCompare(b.datum));
+  let gemVerbruik = null;
+  if(volBeurten.length>=2){
+    // Bereken over het gehele bereik
+    const totLiter = volBeurten.slice(1).reduce((s,v)=>s+(v.hoeveelheid||0),0);
+    const kmRange  = volBeurten[volBeurten.length-1].km - volBeurten[0].km;
+    if(kmRange>0) gemVerbruik = totLiter/kmRange*100;
+  }
+  // km-stand ritten voor verbruik-per-km berekening
+  const vtRitten = ritten.filter(r=>r.voertuigId===vtId);
+  const totKm = vtRitten.reduce((s,r)=>s+(r.afgelegdKm||0),0);
+  const kostPerKm = totKm>0 ? totalKosten/totKm : null;
+
+  // Bepaal label: liter of kWh
+  const hasElec = vbs.some(v=>v.type==='elektrisch');
+  const hasFuel = vbs.some(v=>v.type==='brandstof');
+  const eenheid = hasElec&&!hasFuel ? 'kWh' : 'L';
+  const verbruikLabel = eenheid==='kWh' ? 'kWh/100km' : 'L/100km';
+
+  document.getElementById('vb-gem-verbruik').textContent = gemVerbruik!=null ? gemVerbruik.toFixed(2)+' '+eenheid : '–';
+  document.getElementById('vb-verbruik-label').textContent = verbruikLabel;
+  document.getElementById('vb-totaal-kosten').textContent = totalKosten>0 ? '€ '+totalKosten.toFixed(2) : '€ –';
+  document.getElementById('vb-kosten-per-km').textContent = kostPerKm!=null ? '€ '+kostPerKm.toFixed(3) : '€ –';
+
+  // Tabel
+  const tbody=document.getElementById('vb-tbody');
+  const tabel=document.getElementById('vb-table');
+  const empty=document.getElementById('vb-empty');
+  if(!vbs.length){ tabel.style.display='none'; empty.style.display='block'; }
+  else {
+    tabel.style.display=''; empty.style.display='none';
+    tbody.innerHTML = vbs.map(v=>{
+      // Verbruik per entry (tov vorige vol-beurt)
+      let verbruikStr='–';
+      if(v.vol&&v.hoeveelheid&&v.type!=='overig'){
+        const vorige=volBeurten.filter(b=>b.datum<v.datum&&b.km<v.km).pop();
+        if(vorige){const d=v.km-vorige.km; if(d>0) verbruikStr=(v.hoeveelheid/d*100).toFixed(2);}
+      }
+      const typeIcon={brandstof:'⛽',elektrisch:'⚡',overig:'🔧'}[v.type]||'';
+      const typeKleur={brandstof:'#f59e0b',elektrisch:'#34d399',overig:'#94a3b8'}[v.type]||'#64748b';
+      return `<tr>
+        <td>${v.datum}</td>
+        <td style="font-size:12px;color:#64748b">${esc(v.voertuigLabel||'')}</td>
+        <td><span style="font-size:11px;background:transparent;border:1px solid ${typeKleur}33;color:${typeKleur};border-radius:4px;padding:1px 6px">${typeIcon} ${v.type}</span></td>
+        <td class="text-right mono">${fmt(v.km)}</td>
+        <td class="text-right mono">${v.hoeveelheid?v.hoeveelheid.toFixed(2):'–'}</td>
+        <td class="text-right mono" style="color:#34d399">${v.prijs?'€ '+v.prijs.toFixed(2):'–'}</td>
+        <td class="text-right mono" style="color:#94a3b8">${verbruikStr}</td>
+        <td>
+          <div style="display:flex;gap:4px;justify-content:flex-end">
+            <button class="del-btn" onclick="editVerbruik(${v.id})" style="color:#475569">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="del-btn" onclick="delVerbruik(${v.id})">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  renderVerbruikChart(vbs);
+}
+
+function renderVerbruikChart(vbs){
+  const canvas=document.getElementById('vb-chart');
+  const empty=document.getElementById('vb-chart-empty');
+  const volBeurten=[...vbs].filter(v=>v.vol&&v.hoeveelheid&&v.type!=='overig').sort((a,b)=>a.datum.localeCompare(b.datum));
+  if(volBeurten.length<2){ canvas.style.display='none'; empty.style.display='block'; return; }
+  canvas.style.display='block'; empty.style.display='none';
+
+  // Compute per-segment consumption
+  const pts=[];
+  for(let i=1;i<volBeurten.length;i++){
+    const d=volBeurten[i].km-volBeurten[i-1].km;
+    if(d>0) pts.push({datum:volBeurten[i].datum, val:volBeurten[i].hoeveelheid/d*100});
+  }
+  if(!pts.length){ canvas.style.display='none'; empty.style.display='block'; return; }
+
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||canvas.parentElement.offsetWidth||300;
+  const H=180;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+
+  const pad={t:10,r:16,b:30,l:44};
+  const gW=W-pad.l-pad.r, gH=H-pad.t-pad.b;
+  const vals=pts.map(p=>p.val);
+  const minV=Math.max(0,Math.min(...vals)-1), maxV=Math.max(...vals)+1;
+
+  // Gridlines
+  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+gH*(1-i/4);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gW,y); ctx.stroke();
+    ctx.fillStyle='#475569'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='right';
+    ctx.fillText((minV+(maxV-minV)*i/4).toFixed(1), pad.l-6, y+3);
+  }
+
+  // Gradient fill
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--clr-accent').trim()||'#f59e0b';
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gH);
+  grad.addColorStop(0,accent+'66'); grad.addColorStop(1,accent+'00');
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const x=pad.l+i/(pts.length-1)*gW;
+    const y=pad.t+gH*(1-(p.val-minV)/(maxV-minV));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.lineTo(pad.l+gW,pad.t+gH); ctx.lineTo(pad.l,pad.t+gH); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.strokeStyle=accent; ctx.lineWidth=2; ctx.lineJoin='round';
+  ctx.beginPath();
+  pts.forEach((p,i)=>{
+    const x=pad.l+i/(pts.length-1)*gW;
+    const y=pad.t+gH*(1-(p.val-minV)/(maxV-minV));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Dots
+  pts.forEach((p,i)=>{
+    const x=pad.l+i/(pts.length-1)*gW;
+    const y=pad.t+gH*(1-(p.val-minV)/(maxV-minV));
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle=accent; ctx.fill();
+  });
+
+  // X-labels (first/last)
+  ctx.fillStyle='#475569'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='center';
+  ctx.fillText(pts[0].datum.slice(5),pad.l,H-6);
+  if(pts.length>1) ctx.fillText(pts[pts.length-1].datum.slice(5),pad.l+gW,H-6);
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
