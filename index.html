@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="KM Registratie"/>
 <meta name="theme-color" content="#0b1120"/>
 <title>KM Registratie</title>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{height:100%;background:#0b1120}
@@ -210,6 +211,24 @@
 
   /* Divider */
   .divider{height:1px;background:#334155;margin:4px 0}
+
+  /* Google login */
+  .g-login-btn{
+    display:flex;align-items:center;gap:8px;padding:7px 13px;
+    background:#fff;color:#1f2937;border:none;border-radius:8px;
+    font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;
+    box-shadow:0 1px 4px rgba(0,0,0,.3);flex-shrink:0;
+  }
+  .g-login-btn:active{opacity:.85}
+  .g-avatar{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .g-avatar img{width:28px;height:28px;border-radius:50%;border:2px solid #334155}
+  .g-avatar-name{font-size:12px;color:#94a3b8;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .g-logout-btn{background:none;border:none;color:#475569;font-size:11px;cursor:pointer;padding:4px 6px;border-radius:4px}
+  .g-logout-btn:active{color:#f87171}
+  .sheet-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:4px}
+  .sheet-status.ok{background:rgba(52,211,153,.12);color:#34d399}
+  .sheet-status.err{background:rgba(248,113,113,.12);color:#f87171}
+  .sheet-status.pending{background:rgba(245,158,11,.12);color:#f59e0b}
 </style>
 </head>
 <body>
@@ -220,20 +239,35 @@
       <span class="brand-title">KM REGISTRATIE</span>
       <span class="brand-sub" id="topbar-sub"></span>
     </div>
-    <nav>
-      <button class="nav-btn active" data-page="ritten" onclick="showPage('ritten',this)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Ritten
-      </button>
-      <button class="nav-btn" data-page="locaties" onclick="showPage('locaties',this)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        Locaties
-      </button>
-      <button class="nav-btn" data-page="voertuig" onclick="showPage('voertuig',this)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
-        Voertuig
-      </button>
-    </nav>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="g-login-wrap">
+        <button class="g-login-btn" onclick="googleLogin()">
+          <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Inloggen
+        </button>
+      </div>
+      <div id="g-user-wrap" style="display:none;align-items:center;gap:6px">
+        <div class="g-avatar" onclick="showPage('voertuig', document.querySelector('[data-page=voertuig]'))">
+          <img id="g-avatar-img" src="" alt=""/>
+          <span class="g-avatar-name" id="g-avatar-name"></span>
+        </div>
+        <button class="g-logout-btn" onclick="googleLogout()" title="Uitloggen">✕</button>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-page="ritten" onclick="showPage('ritten',this)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Ritten
+        </button>
+        <button class="nav-btn" data-page="locaties" onclick="showPage('locaties',this)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          Locaties
+        </button>
+        <button class="nav-btn" data-page="voertuig" onclick="showPage('voertuig',this)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
+          Voertuig
+        </button>
+      </nav>
+    </div>
   </div>
 
   <!-- RITTEN PAGE -->
@@ -310,7 +344,7 @@
           </div>
         </div>
 
-        <div class="toggle-group">
+        <div class="toggle-group" style="flex-wrap:wrap;gap:10px">
           <div class="toggle-row" onclick="toggleSwitch('isWerk')">
             <span class="toggle-label" id="lbl-werk-off" style="color:#94a3b8">Privé</span>
             <div class="toggle-track checked on-amber" id="track-isWerk">
@@ -325,6 +359,17 @@
               <div class="toggle-thumb"></div>
             </div>
             <span class="toggle-label" id="lbl-omweg-on" style="color:#64748b">Omweg</span>
+          </div>
+          <div id="richting-wrap" style="display:none;width:100%;padding-top:10px;border-top:1px solid #334155">
+            <div style="font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Richting omweg</div>
+            <div style="display:flex;gap:8px">
+              <button id="btn-woonwerk" class="btn btn-primary btn-sm" onclick="setRichting('woonwerk')" style="font-size:12px">
+                🏠→🏢 Woon-werk
+              </button>
+              <button id="btn-werkwoon" class="btn btn-ghost btn-sm" onclick="setRichting('werkwoon')" style="font-size:12px">
+                🏢→🏠 Werk-woon
+              </button>
+            </div>
           </div>
         </div>
 
@@ -417,7 +462,20 @@
     </div>
 
     <div class="card" style="margin-top:12px">
-      <div class="card-title" id="loc-list-title">Opgeslagen locaties (0)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" id="loc-list-title" style="margin-bottom:0">Opgeslagen locaties (0)</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportLocaties()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exporteer
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('loc-import-input').click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5M12 5v10M17 10l-5-5"/></svg>
+            Importeer
+          </button>
+          <input type="file" id="loc-import-input" accept=".csv" style="display:none" onchange="importLocaties(this)"/>
+        </div>
+      </div>
       <div class="loc-list" id="loc-list-ul"></div>
       <div class="empty" id="loc-empty">Nog geen locaties toegevoegd.</div>
     </div>
@@ -446,9 +504,17 @@
         <div class="divider"></div>
         <div class="field">
           <label>Woon-werk afstand (enkele reis)</label>
-          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Gebruikt bij omweg-berekening: woon-werk km → Werk, overige km → Privé.</p>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Omweg van huis naar werk: woon-werk km → Werk, overige km → Privé.</p>
           <div class="inp-wrap">
             <input class="inp" type="number" id="vt-woonwerk" placeholder="0" inputmode="numeric"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Werk-woon afstand (enkele reis)</label>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Omweg van werk naar huis: werk-woon km → Werk, overige km → Privé.</p>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="vt-werkwoon" placeholder="0" inputmode="numeric"/>
             <span class="inp-suffix">km</span>
           </div>
         </div>
@@ -465,12 +531,35 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">Google Sheets koppeling</div>
+      <div id="g-sheet-not-logged" style="display:block">
+        <p style="font-size:13px;color:#64748b;margin-bottom:12px">Log eerst in met Google (knop rechtsboven) om de koppeling in te stellen.</p>
+      </div>
+      <div id="g-sheet-logged" style="display:none;flex-direction:column;gap:14px">
+        <div class="field">
+          <label>Google Client ID</label>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Uit uw Google Cloud Console. Zie de instructies hieronder.</p>
+          <input class="inp" type="text" id="vt-clientid" placeholder="123456789-abc...apps.googleusercontent.com"/>
+        </div>
+        <div class="field">
+          <label>Google Sheet ID</label>
+          <p style="font-size:12px;color:#64748b;margin-bottom:8px">Het gedeelte uit de URL van uw sheet: docs.google.com/spreadsheets/d/<strong style="color:#f59e0b">dit-gedeelte</strong>/edit</p>
+          <input class="inp" type="text" id="vt-sheetid" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"/>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="saveGoogleSettings()">Opslaan & testen</button>
+          <span id="sheet-status-badge" style="display:none"></span>
+        </div>
+      </div>
+    </div>
+
     <div class="info-box">
       <div class="info-box-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16v-4M12 8h.01"/><circle cx="12" cy="12" r="10"/></svg>
       </div>
       <p><strong>Omweg-schakelaar</strong> op de hoofdpagina:<br/>
-      Als een rit als <em>omweg</em> wordt gemarkeerd, worden de ingestelde woon-werk km als <strong>werkkilometers</strong> geregistreerd en de eventuele extra km als privékilometers.</p>
+      Kies de richting: <strong>Woon→Werk</strong> gebruikt de woon-werk afstand, <strong>Werk→Woon</strong> gebruikt de werk-woon afstand. De ingestelde km gaan als werkkilometers, eventuele extra km als privékilometers.</p>
     </div>
   </div>
 </div>
@@ -525,12 +614,15 @@ function loadVoertuig(){
   document.getElementById('vt-naam').value = settings.naam||'';
   document.getElementById('vt-beginkm').value = settings.beginKm||0;
   document.getElementById('vt-woonwerk').value = settings.woonWerkKm||0;
+  document.getElementById('vt-werkwoon').value = settings.werkWoonKm||0;
   document.getElementById('vt-maxpriv').value = settings.maxPrivKm||0;
+  updateGoogleSettingsPanel();
 }
 function saveSettings(){
   settings.naam = document.getElementById('vt-naam').value.trim();
   settings.beginKm = parseFloat(document.getElementById('vt-beginkm').value)||0;
   settings.woonWerkKm = parseFloat(document.getElementById('vt-woonwerk').value)||0;
+  settings.werkWoonKm = parseFloat(document.getElementById('vt-werkwoon').value)||0;
   settings.maxPrivKm = parseFloat(document.getElementById('vt-maxpriv').value)||0;
   save();
   updateTopbar();
@@ -603,7 +695,60 @@ function delLocatie(id){
   renderLocaties();
   renderLokDropdown();
 }
-function renderLocaties(){
+function exportLocaties(){
+  if(!locaties.length){ toast('Geen locaties om te exporteren'); return; }
+  const rows=[['Naam','Postcode','Plaats']];
+  locaties.forEach(l=>rows.push([l.naam, l.postcode, l.plaats]));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='locaties.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('✓ Locaties geëxporteerd');
+}
+
+function importLocaties(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,'');
+      const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+      if(lines.length<2){ toast('⚠ CSV lijkt leeg'); return; }
+      const header=parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
+      const iNaam=header.indexOf('naam');
+      const iPc=header.indexOf('postcode');
+      const iPlaats=header.indexOf('plaats');
+      if(iNaam===-1||iPc===-1||iPlaats===-1){ toast('⚠ Ongeldig formaat — gebruik een geëxporteerd locaties.csv bestand'); return; }
+      const existing=new Set(locaties.map(l=>l.naam.toLowerCase()+'|'+l.postcode.toLowerCase()));
+      let toegevoegd=0, dupes=0;
+      for(let i=1;i<lines.length;i++){
+        const c=parseCSVRow(lines[i]);
+        const naam=(c[iNaam]||'').trim();
+        const pc=(c[iPc]||'').trim();
+        const plaats=(c[iPlaats]||'').trim();
+        if(!naam||!pc||!plaats) continue;
+        const key=naam.toLowerCase()+'|'+pc.toLowerCase();
+        if(existing.has(key)){ dupes++; continue; }
+        locaties.push({ id:Date.now()+i, naam, postcode:pc, plaats });
+        existing.add(key);
+        toegevoegd++;
+      }
+      save();
+      renderLocaties();
+      input.value='';
+      let msg=`✓ ${toegevoegd} locaties geïmporteerd`;
+      if(dupes) msg+=` (${dupes} al aanwezig overgeslagen)`;
+      toast(msg);
+    }catch(err){
+      toast('⚠ Fout bij importeren: '+err.message);
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
   const ul=document.getElementById('loc-list-ul');
   const empty=document.getElementById('loc-empty');
   document.getElementById('loc-list-title').textContent=`Opgeslagen locaties (${locaties.length})`;
@@ -624,7 +769,14 @@ function renderLocaties(){
 // ═══════════════════════════════════════════════════════
 // RITTEN – state
 // ═══════════════════════════════════════════════════════
-let ritState = { isWerk:true, isOmweg:false, selLocId:null };
+let ritState = { isWerk:true, isOmweg:false, omwegRichting:'woonwerk', selLocId:null };
+
+function setRichting(r){
+  ritState.omwegRichting=r;
+  document.getElementById('btn-woonwerk').className='btn btn-sm '+(r==='woonwerk'?'btn-primary':'btn-ghost');
+  document.getElementById('btn-werkwoon').className='btn btn-sm '+(r==='werkwoon'?'btn-primary':'btn-ghost');
+  updatePreview();
+}
 
 function toggleSwitch(key){
   ritState[key]=!ritState[key];
@@ -644,8 +796,14 @@ function toggleSwitch(key){
     track.className='toggle-track'+(isO?' checked on-amber':'');
     document.getElementById('lbl-omweg-on').style.color=isO?'#f59e0b':'#64748b';
     document.getElementById('lbl-omweg-on').style.fontWeight=isO?'700':'500';
+    document.getElementById('richting-wrap').style.display=isO?'block':'none';
   }
   updatePreview();
+}
+
+function getOmwegKm(){
+  if(ritState.omwegRichting==='werkwoon') return parseFloat(settings.werkWoonKm)||0;
+  return parseFloat(settings.woonWerkKm)||0;
 }
 
 function updatePreview(){
@@ -658,16 +816,19 @@ function updatePreview(){
   bar.style.display='flex';
   let werk=0,priv=0;
   if(ritState.isOmweg){
-    werk=Math.min(parseFloat(settings.woonWerkKm)||0, afgelegd);
+    const omwegKm=getOmwegKm();
+    werk=Math.min(omwegKm, afgelegd);
     priv=Math.max(0,afgelegd-werk);
+    const label=ritState.omwegRichting==='werkwoon'?'werk-woon':'woon-werk';
+    document.getElementById('prev-note').textContent=`• omweg ${label} (${omwegKm} km)`;
   } else {
     werk=ritState.isWerk?afgelegd:0;
     priv=!ritState.isWerk?afgelegd:0;
+    document.getElementById('prev-note').textContent='';
   }
   document.getElementById('prev-af').textContent=fmt(afgelegd);
   document.getElementById('prev-werk').textContent=fmt(werk);
   document.getElementById('prev-priv').textContent=fmt(priv);
-  document.getElementById('prev-note').textContent=ritState.isOmweg?`• omweg (${settings.woonWerkKm} km woon-werk)`:'';
 }
 
 function getPrevKm(){
@@ -738,7 +899,8 @@ function addRit(){
   const afgelegd=huidig-prevKm;
   let werkKm=0,privKm=0;
   if(ritState.isOmweg){
-    werkKm=Math.min(parseFloat(settings.woonWerkKm)||0,afgelegd);
+    const omwegKm=getOmwegKm();
+    werkKm=Math.min(omwegKm,afgelegd);
     privKm=Math.max(0,afgelegd-werkKm);
   } else {
     werkKm=ritState.isWerk?afgelegd:0;
@@ -748,18 +910,22 @@ function addRit(){
   ritten.push({
     id:Date.now(), datum, eindKm:huidig,
     locatieId:loc.id, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
-    isWerk:ritState.isWerk, isOmweg:ritState.isOmweg,
+    isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
     afgelegdKm:afgelegd, werkKm, privKm
   });
   save();
+  appendRitToSheet(ritten[ritten.length-1]);
 
   // Reset form
   document.getElementById('rit-eindkm').value='';
   document.getElementById('preview-bar').style.display='none';
   clearLoc();
-  ritState.isWerk=true; ritState.isOmweg=false;
+  ritState.isWerk=true; ritState.isOmweg=false; ritState.omwegRichting='woonwerk';
   document.getElementById('track-isWerk').className='toggle-track checked on-amber';
   document.getElementById('track-isOmweg').className='toggle-track';
+  document.getElementById('richting-wrap').style.display='none';
+  document.getElementById('btn-woonwerk').className='btn btn-primary btn-sm';
+  document.getElementById('btn-werkwoon').className='btn btn-ghost btn-sm';
   document.getElementById('lbl-werk-on').style.color='#f59e0b';
   document.getElementById('lbl-werk-off').style.color='#94a3b8';
   document.getElementById('lbl-omweg-on').style.color='#64748b';
@@ -939,7 +1105,7 @@ function renderTabel(){
         <div style="font-size:13px;color:#f1f5f9;font-weight:500">${esc(r.locatieNaam)}</div>
         <div class="mono" style="font-size:11px;color:#475569">${esc(r.locatiePostcode)} · ${esc(r.locatiePlaats)}</div>
       </td>
-      <td><span class="badge ${r.isOmweg?'badge-omweg':r.isWerk?'badge-werk':'badge-priv'}">${r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé'}</span></td>
+      <td><span class="badge ${r.isOmweg?'badge-omweg':r.isWerk?'badge-werk':'badge-priv'}">${r.isOmweg?(r.omwegRichting==='werkwoon'?'Werk→Woon':'Woon→Werk'):r.isWerk?'Werk':'Privé'}</span></td>
       <td class="mono text-right">${fmt(r.afgelegdKm)}</td>
       <td class="mono text-right" style="color:#34d399">${fmt(r.werkKm||0)}</td>
       <td class="mono text-right" style="color:#f87171">${fmt(r.privKm||0)}</td>
@@ -1077,6 +1243,186 @@ function parseCSVRow(row){
   }
   result.push(cur);
   return result.map(s=>s.replace(/^"|"$/g,'').replace(/""/g,'"'));
+}
+
+// ═══════════════════════════════════════════════════════
+// GOOGLE OAUTH + SHEETS
+// ═══════════════════════════════════════════════════════
+let gTokenClient = null;
+let gAccessToken = null;
+let gTokenExpiry  = 0;
+let gUser = null;
+
+function googleLogin(){
+  const clientId = settings.googleClientId;
+  if(!clientId){
+    toast('⚠ Vul eerst een Google Client ID in bij Voertuig & Instellingen');
+    showPage('voertuig', document.querySelector('[data-page=voertuig]'));
+    return;
+  }
+  if(typeof google === 'undefined'){
+    toast('⚠ Google script nog niet geladen — even wachten en opnieuw proberen');
+    return;
+  }
+
+  // Init token client
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/spreadsheets openid email profile',
+    callback: async (resp) => {
+      if(resp.error){ toast('⚠ Inloggen mislukt: ' + resp.error); return; }
+      gAccessToken = resp.access_token;
+      gTokenExpiry  = Date.now() + (resp.expires_in - 60) * 1000;
+      await fetchGoogleUser();
+    }
+  });
+  gTokenClient.requestAccessToken();
+}
+
+async function fetchGoogleUser(){
+  try{
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers:{ Authorization: 'Bearer ' + gAccessToken }
+    });
+    gUser = await r.json();
+    document.getElementById('g-login-wrap').style.display  = 'none';
+    const uw = document.getElementById('g-user-wrap');
+    uw.style.display = 'flex';
+    document.getElementById('g-avatar-img').src = gUser.picture || '';
+    document.getElementById('g-avatar-name').textContent = gUser.given_name || gUser.email || '';
+    updateGoogleSettingsPanel();
+    toast('✓ Ingelogd als ' + (gUser.email || ''));
+  }catch(e){ toast('⚠ Kon gebruikersinfo niet ophalen'); }
+}
+
+function googleLogout(){
+  if(gAccessToken) google.accounts.oauth2.revoke(gAccessToken);
+  gAccessToken = null; gTokenExpiry = 0; gUser = null;
+  document.getElementById('g-login-wrap').style.display  = 'block';
+  document.getElementById('g-user-wrap').style.display   = 'none';
+  updateGoogleSettingsPanel();
+  toast('Uitgelogd');
+}
+
+function updateGoogleSettingsPanel(){
+  const loggedIn = !!gUser;
+  document.getElementById('g-sheet-not-logged').style.display = loggedIn ? 'none' : 'block';
+  document.getElementById('g-sheet-logged').style.display     = loggedIn ? 'flex' : 'none';
+  if(loggedIn){
+    document.getElementById('vt-clientid').value = settings.googleClientId || '';
+    document.getElementById('vt-sheetid').value  = settings.googleSheetId  || '';
+  }
+}
+
+function saveGoogleSettings(){
+  settings.googleClientId = document.getElementById('vt-clientid').value.trim();
+  settings.googleSheetId  = document.getElementById('vt-sheetid').value.trim();
+  DB.set('km-settings', settings);
+  testSheetConnection();
+}
+
+async function ensureToken(){
+  if(!gTokenClient) return false;
+  if(gAccessToken && Date.now() < gTokenExpiry) return true;
+  // Token verlopen — stil vernieuwen
+  return new Promise(resolve => {
+    gTokenClient.callback = (resp) => {
+      if(resp.error){ resolve(false); return; }
+      gAccessToken = resp.access_token;
+      gTokenExpiry  = Date.now() + (resp.expires_in - 60) * 1000;
+      resolve(true);
+    };
+    gTokenClient.requestAccessToken({ prompt:'' });
+  });
+}
+
+async function testSheetConnection(){
+  const badge = document.getElementById('sheet-status-badge');
+  badge.style.display = 'inline-flex';
+  badge.className = 'sheet-status pending';
+  badge.textContent = '⏳ Verbinding testen…';
+
+  const ok = await ensureToken();
+  if(!ok){ badge.className='sheet-status err'; badge.textContent='✕ Niet ingelogd'; return; }
+
+  const sheetId = settings.googleSheetId;
+  if(!sheetId){ badge.className='sheet-status err'; badge.textContent='✕ Geen Sheet ID'; return; }
+
+  try{
+    const r = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=properties.title`,
+      { headers:{ Authorization:'Bearer '+gAccessToken } }
+    );
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    badge.className = 'sheet-status ok';
+    badge.textContent = '✓ Verbonden met "' + (data.properties?.title || 'sheet') + '"';
+    // Zorg voor koptekstrij
+    await ensureSheetHeader();
+  }catch(e){
+    badge.className = 'sheet-status err';
+    badge.textContent = '✕ Fout: ' + e.message;
+  }
+}
+
+async function ensureSheetHeader(){
+  // Lees rij 1 — als leeg, schrijf koptekst
+  const sheetId = settings.googleSheetId;
+  try{
+    const r = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:J1`,
+      { headers:{ Authorization:'Bearer '+gAccessToken } }
+    );
+    const data = await r.json();
+    if(data.values && data.values[0] && data.values[0][0]) return; // header exists
+    // Schrijf header
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:J1?valueInputOption=USER_ENTERED`,
+      {
+        method:'PUT',
+        headers:{ Authorization:'Bearer '+gAccessToken, 'Content-Type':'application/json' },
+        body: JSON.stringify({ values:[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km']] })
+      }
+    );
+  }catch(e){}
+}
+
+async function appendRitToSheet(rit){
+  if(!gAccessToken || !settings.googleSheetId) return;
+  const ok = await ensureToken();
+  if(!ok) return;
+
+  const soort = rit.isOmweg
+    ? (rit.omwegRichting==='werkwoon' ? 'Werk→Woon' : 'Woon→Werk')
+    : rit.isWerk ? 'Werk' : 'Privé';
+
+  const row = [
+    rit.datum,
+    rit.eindKm,
+    rit.locatieNaam,
+    rit.locatiePostcode,
+    rit.locatiePlaats,
+    soort,
+    rit.isOmweg ? 'Ja' : 'Nee',
+    rit.afgelegdKm,
+    rit.werkKm || 0,
+    rit.privKm  || 0,
+  ];
+
+  try{
+    const r = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${settings.googleSheetId}/values/A:J:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+      {
+        method:'POST',
+        headers:{ Authorization:'Bearer '+gAccessToken, 'Content-Type':'application/json' },
+        body: JSON.stringify({ values:[row] })
+      }
+    );
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    toast('✓ Rit opgeslagen + naar Google Sheet gestuurd');
+  }catch(e){
+    toast('⚠ Sheet sync mislukt: ' + e.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
