@@ -1577,7 +1577,10 @@ function buildYearFilter(){
 
 function renderTabel(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
-  const filtered=[...ritten].filter(r=>new Date(r.datum).getFullYear()===yr).reverse();
+  const filtered=[...ritten].filter(r=>new Date(r.datum).getFullYear()===yr).sort((a,b)=>{
+    if(b.datum !== a.datum) return b.datum.localeCompare(a.datum);
+    return (b.logTijd||'').localeCompare(a.logTijd||'');
+  });
   const tbody=document.getElementById('rit-tbody');
   const tfoot=document.getElementById('rit-tfoot');
   const empty=document.getElementById('rit-empty');
