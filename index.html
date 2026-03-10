@@ -636,7 +636,94 @@
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- OVERZICHT PAGE (outside app div, same level) -->
+<div class="page" id="page-overzicht" style="display:none;padding:24px 16px 100px;max-width:900px;margin:0 auto;width:100%">
+  <div style="margin-bottom:20px">
+    <h2 style="font-size:20px;font-weight:700;color:#f1f5f9">Overzicht</h2>
+    <p style="color:#64748b;font-size:13px;margin-top:5px">Filter en analyseer uw ritten.</p>
+  </div>
+
+  <!-- Snelknoppen -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:12px">Snelfilter</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="ov-snelknoppen"></div>
+    <div class="form-grid form-grid-2" style="gap:10px">
+      <div class="field">
+        <label>Van</label>
+        <input class="inp" type="date" id="ov-van" onchange="renderOverzicht()"/>
+      </div>
+      <div class="field">
+        <label>Tot en met</label>
+        <input class="inp" type="date" id="ov-tot" onchange="renderOverzicht()"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extra filters -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:12px">Filters</div>
+    <div class="form-grid" style="gap:12px">
+      <div class="field">
+        <label>Voertuig</label>
+        <select class="inp" id="ov-voertuig" onchange="renderOverzicht()">
+          <option value="">Alle voertuigen</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Soort rit</label>
+        <select class="inp" id="ov-soort" onchange="renderOverzicht()">
+          <option value="">Alle soorten</option>
+          <option value="werk">Werk</option>
+          <option value="priv">Privé</option>
+          <option value="omweg">Omweg</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Locatie</label>
+        <input class="inp" type="text" id="ov-locatie" placeholder="Zoek op locatienaam…" oninput="renderOverzicht()"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="resetOvFilters()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Filters wissen
+      </button>
+    </div>
+  </div>
+
+  <!-- Resultaten -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:14px">Resultaat <span id="ov-count" style="color:#64748b;font-size:12px;font-weight:400"></span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:#0f172a;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Totaal</div>
+        <div style="font-size:22px;font-weight:700;color:#f1f5f9" id="ov-totaal">0 km</div>
+      </div>
+      <div style="background:#0f172a;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Werk</div>
+        <div style="font-size:22px;font-weight:700;color:#34d399" id="ov-werk">0 km</div>
+      </div>
+      <div style="background:#0f172a;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Privé</div>
+        <div style="font-size:22px;font-weight:700;color:#f87171" id="ov-priv">0 km</div>
+      </div>
+    </div>
+
+    <!-- Mini tabel -->
+    <div style="overflow-x:auto">
+      <table class="rit-table" id="ov-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Datum</th><th>Voertuig</th><th>Bestemming</th><th>Soort</th>
+            <th class="text-right">Werk</th><th class="text-right">Privé</th>
+          </tr>
+        </thead>
+        <tbody id="ov-tbody"></tbody>
+      </table>
+      <div class="empty" id="ov-empty" style="display:none">Geen ritten gevonden met deze filters.</div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -723,6 +810,10 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
     Voertuig
   </button>
+  <button class="nav-btn" data-page="overzicht" onclick="showPage('overzicht',this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Overzicht
+  </button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -758,14 +849,20 @@ function getActiefVoertuig(){ return voertuigen.find(v=>v.id===settings.actieveV
 // NAVIGATION
 // ═══════════════════════════════════════════════════════
 function showPage(id, btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  // Verberg alle pagina's (ook overzicht buiten app-div)
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.remove('active');
+    p.style.display='none';
+  });
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  // Markeer de juiste nav knop in de bottom nav
+  const pg = document.getElementById('page-'+id);
+  pg.classList.add('active');
+  pg.style.display='block';
   document.querySelectorAll('.nav-btn[data-page="'+id+'"]').forEach(b=>b.classList.add('active'));
-  if(id==='ritten') renderRitten();
-  if(id==='locaties') renderLocaties();
-  if(id==='voertuig') loadVoertuig();
+  if(id==='ritten')    renderRitten();
+  if(id==='locaties')  renderLocaties();
+  if(id==='voertuig')  loadVoertuig();
+  if(id==='overzicht') loadOverzicht();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1959,6 +2056,8 @@ function esc(s){ const d=document.createElement('div'); d.textContent=s||''; ret
 document.addEventListener('DOMContentLoaded', ()=>{
   // Set today's date
   document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
+  // Zorg dat startpagina zichtbaar is
+  document.getElementById('page-ritten').style.display='block';
   // Init
   updateTopbar();
   renderRitten();
@@ -1967,6 +2066,122 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Km input live preview
   document.getElementById('rit-eindkm').addEventListener('input', updatePreview);
 });
+
+// ═══════════════════════════════════════════════════════
+// OVERZICHT
+// ═══════════════════════════════════════════════════════
+function loadOverzicht(){
+  // Vul voertuig dropdown
+  const sel = document.getElementById('ov-voertuig');
+  const cur = sel.value;
+  sel.innerHTML='<option value="">Alle voertuigen</option>';
+  voertuigen.forEach(v=>{
+    const label=[v.merk,v.type].filter(Boolean).join(' ')||v.kenteken||'Voertuig';
+    const opt=document.createElement('option');
+    opt.value=v.id; opt.textContent=label+(v.kenteken?' ('+v.kenteken+')':'');
+    sel.appendChild(opt);
+  });
+  sel.value=cur;
+  // Snelknoppen opbouwen
+  buildOvSnelknoppen();
+  renderOverzicht();
+}
+
+function buildOvSnelknoppen(){
+  const wrap = document.getElementById('ov-snelknoppen');
+  const now  = new Date();
+  const yr   = now.getFullYear();
+  // Haal alle jaren uit de ritten
+  const jaren = [...new Set(ritten.map(r=>new Date(r.datum).getFullYear()))].sort((a,b)=>b-a);
+  const knoppen = [];
+  jaren.forEach(j=>{
+    knoppen.push({ label: String(j), van: `${j}-01-01`, tot: `${j}-12-31` });
+    knoppen.push({ label: `Q1 ${j}`, van: `${j}-01-01`, tot: `${j}-03-31` });
+    knoppen.push({ label: `Q2 ${j}`, van: `${j}-04-01`, tot: `${j}-06-30` });
+    knoppen.push({ label: `Q3 ${j}`, van: `${j}-07-01`, tot: `${j}-09-30` });
+    knoppen.push({ label: `Q4 ${j}`, van: `${j}-10-01`, tot: `${j}-12-31` });
+  });
+  // Beperk tot huidig en vorig jaar als er veel jaren zijn
+  const visible = jaren.length > 2
+    ? knoppen.filter(k=>k.label.endsWith(String(yr))||k.label.endsWith(String(yr-1)))
+    : knoppen;
+
+  wrap.innerHTML = visible.map(k=>`
+    <button class="btn btn-ghost btn-sm ov-snelknop" onclick="setOvPeriode('${k.van}','${k.tot}',this)">
+      ${k.label}
+    </button>`).join('');
+}
+
+function setOvPeriode(van, tot, btn){
+  document.getElementById('ov-van').value = van;
+  document.getElementById('ov-tot').value = tot;
+  document.querySelectorAll('.ov-snelknop').forEach(b=>b.classList.remove('btn-primary'));
+  document.querySelectorAll('.ov-snelknop').forEach(b=>b.classList.add('btn-ghost'));
+  if(btn){ btn.classList.remove('btn-ghost'); btn.classList.add('btn-primary'); }
+  renderOverzicht();
+}
+
+function resetOvFilters(){
+  document.getElementById('ov-van').value='';
+  document.getElementById('ov-tot').value='';
+  document.getElementById('ov-voertuig').value='';
+  document.getElementById('ov-soort').value='';
+  document.getElementById('ov-locatie').value='';
+  document.querySelectorAll('.ov-snelknop').forEach(b=>{b.classList.remove('btn-primary');b.classList.add('btn-ghost');});
+  renderOverzicht();
+}
+
+function renderOverzicht(){
+  const van      = document.getElementById('ov-van').value;
+  const tot      = document.getElementById('ov-tot').value;
+  const voertuigF= document.getElementById('ov-voertuig').value;
+  const soortF   = document.getElementById('ov-soort').value;
+  const locatieF = document.getElementById('ov-locatie').value.toLowerCase();
+
+  let filtered = ritten.filter(r=>{
+    if(van && r.datum < van) return false;
+    if(tot && r.datum > tot) return false;
+    if(voertuigF && String(r.voertuigId) !== String(voertuigF)) return false;
+    if(soortF==='werk'  && !(r.isWerk && !r.isOmweg)) return false;
+    if(soortF==='priv'  && !(! r.isWerk && !r.isOmweg)) return false;
+    if(soortF==='omweg' && !r.isOmweg) return false;
+    if(locatieF && !(r.locatieNaam||'').toLowerCase().includes(locatieF)
+                && !(r.locatiePostcode||'').toLowerCase().includes(locatieF)
+                && !(r.locatiePlaats||'').toLowerCase().includes(locatieF)) return false;
+    return true;
+  }).sort((a,b)=>b.datum.localeCompare(a.datum));
+
+  const totaalKm = filtered.reduce((s,r)=>s+(r.afgelegdKm||0),0);
+  const werkKm   = filtered.reduce((s,r)=>s+(r.werkKm||0),0);
+  const privKm   = filtered.reduce((s,r)=>s+(r.privKm||0),0);
+
+  document.getElementById('ov-count').textContent = `— ${filtered.length} rit${filtered.length!==1?'ten':''}`;
+  document.getElementById('ov-totaal').textContent = fmt(totaalKm)+' km';
+  document.getElementById('ov-werk').textContent   = fmt(werkKm)+' km';
+  document.getElementById('ov-priv').textContent   = fmtPriv(privKm)+' km';
+
+  const tbody = document.getElementById('ov-tbody');
+  const table = document.getElementById('ov-table');
+  const empty = document.getElementById('ov-empty');
+
+  if(!filtered.length){
+    tbody.innerHTML=''; table.style.display='none'; empty.style.display='block'; return;
+  }
+  table.style.display=''; empty.style.display='none';
+  tbody.innerHTML = filtered.map((r,i)=>`
+    <tr style="${i%2?'background:rgba(15,23,42,.35)':''}">
+      <td class="mono" style="color:#94a3b8;white-space:nowrap">${r.datum}</td>
+      <td style="font-size:11px;color:#64748b;white-space:nowrap">${esc(r.voertuigLabel||'—')}</td>
+      <td>
+        <div style="font-size:13px;color:#f1f5f9;font-weight:500">${esc(r.locatieNaam||'—')}</div>
+        <div class="mono" style="font-size:11px;color:#475569">${esc(r.locatiePostcode||'')}${r.locatiePostcode&&r.locatiePlaats?' · ':''}${esc(r.locatiePlaats||'')}</div>
+        ${r.opmerking?`<div style="font-size:11px;color:#64748b;font-style:italic">${esc(r.opmerking)}</div>`:''}
+      </td>
+      <td><span class="badge ${r.isOmweg?'badge-omweg':r.isWerk?'badge-werk':'badge-priv'}">${r.isOmweg?(r.omwegRichting==='werkwoon'?'Werk→Woon':'Woon→Werk'):r.isWerk?'Werk':'Privé'}</span></td>
+      <td class="mono text-right" style="color:#34d399">${fmt(r.werkKm||0)}</td>
+      <td class="mono text-right" style="color:#f87171">${fmtPriv(r.privKm||0)}</td>
+    </tr>`).join('');
+}
 </script>
 </body>
 </html>
