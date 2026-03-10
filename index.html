@@ -731,6 +731,16 @@
       <button class="modal-close" onclick="closeEditModal()">✕</button>
     </div>
     <div class="form-grid" style="gap:14px">
+
+      <!-- Voertuig -->
+      <div class="field">
+        <label>Voertuig</label>
+        <select class="inp" id="edit-voertuig">
+          <option value="">— geen voertuig —</option>
+        </select>
+      </div>
+
+      <!-- Datum + Eindstand -->
       <div class="form-grid form-grid-2">
         <div class="field">
           <label>Datum</label>
@@ -745,6 +755,7 @@
         </div>
       </div>
 
+      <!-- Locatie -->
       <div class="field">
         <label>Aankomstlocatie</label>
         <div id="edit-loc-dropdown" style="position:relative">
@@ -761,8 +772,31 @@
             <span class="loc-clear">✕</span>
           </div>
         </div>
+        <!-- Overige locatie -->
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px;align-self:flex-start" onclick="toggleEditOverige()" id="edit-btn-overige">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Overige locatie
+        </button>
+        <div id="edit-overige-wrap" style="display:none;margin-top:8px;padding:12px;background:#0f172a;border-radius:8px;border:1px solid #334155">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">Eenmalige locatie</div>
+          <div class="form-grid form-grid-2" style="gap:10px;margin-bottom:10px">
+            <div class="field">
+              <label>Naam</label>
+              <input class="inp" type="text" id="edit-overige-naam" placeholder="Naam locatie"/>
+            </div>
+            <div class="field">
+              <label>Postcode</label>
+              <input class="inp" type="text" id="edit-overige-pc" placeholder="1234 AB"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Plaats</label>
+            <input class="inp" type="text" id="edit-overige-plaats" placeholder="Amsterdam"/>
+          </div>
+        </div>
       </div>
 
+      <!-- Werk/Privé + Omweg -->
       <div class="toggle-group" style="flex-wrap:wrap;gap:10px">
         <div class="toggle-row" onclick="toggleEditSwitch('isWerk')">
           <span class="toggle-label" id="edit-lbl-werk-off" style="color:#94a3b8">Privé</span>
@@ -770,7 +804,7 @@
           <span class="toggle-label active" id="edit-lbl-werk-on" style="color:#f59e0b">Werk</span>
         </div>
         <div class="toggle-divider"></div>
-        <div class="toggle-row" onclick="toggleEditSwitch('isOmweg')">
+        <div class="toggle-row" id="edit-omweg-row" onclick="toggleEditSwitch('isOmweg')">
           <span class="toggle-label" style="color:#94a3b8">Directe rit</span>
           <div class="toggle-track" id="edit-track-isOmweg"><div class="toggle-thumb"></div></div>
           <span class="toggle-label" id="edit-lbl-omweg-on" style="color:#64748b">Omweg</span>
@@ -784,6 +818,7 @@
         </div>
       </div>
 
+      <!-- Opmerking -->
       <div class="field">
         <label>Opmerking <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(optioneel)</span></label>
         <input class="inp" type="text" id="edit-opmerking" placeholder="Bijv. klantbezoek, tankbeurt…"/>
@@ -923,6 +958,7 @@ function setActiefVoertuig(id){
   save();
   renderVoertuigen();
   updateTopbar();
+  renderRitten();
 }
 
 function saveVoertuig(){
@@ -1231,7 +1267,8 @@ function updatePreview(){
 function getPrevKm(){
   const v = getActiefVoertuig();
   const beginKm = v ? (v.beginKm||0) : (parseFloat(settings.beginKm)||0);
-  return ritten.length ? ritten[ritten.length-1].eindKm : beginKm;
+  const vtRitten = v ? ritten.filter(r=>r.voertuigId===v.id) : ritten;
+  return vtRitten.length ? vtRitten[vtRitten.length-1].eindKm : beginKm;
 }
 
 // Location dropdown in rit form
@@ -1610,31 +1647,58 @@ function openEditModal(id){
   editId = id;
   editLocId = r.locatieId||null;
 
-  document.getElementById('edit-datum').value = r.datum;
-  document.getElementById('edit-eindkm').value = r.eindKm;
-  document.getElementById('edit-opmerking').value = r.opmerking||'';
+  // Vul voertuig dropdown
+  const vtSel = document.getElementById('edit-voertuig');
+  vtSel.innerHTML='<option value="">— geen voertuig —</option>';
+  voertuigen.forEach(v=>{
+    const label=[v.merk,v.type].filter(Boolean).join(' ')||v.kenteken||'Voertuig';
+    const opt=document.createElement('option');
+    opt.value=v.id; opt.textContent=label+(v.kenteken?' ('+v.kenteken+')':'');
+    vtSel.appendChild(opt);
+  });
+  vtSel.value = r.voertuigId||'';
 
-  // Locatie pill
-  if(r.locatieNaam){
+  document.getElementById('edit-datum').value    = r.datum;
+  document.getElementById('edit-eindkm').value   = r.eindKm;
+  document.getElementById('edit-opmerking').value= r.opmerking||'';
+
+  // Locatie
+  if(r.locatieId && locaties.find(l=>l.id===r.locatieId)){
     document.getElementById('edit-loc-search').style.display='none';
     document.getElementById('edit-loc-pill').style.display='block';
     document.getElementById('edit-pill-naam').textContent = r.locatieNaam;
     document.getElementById('edit-pill-sub').textContent  = (r.locatiePostcode||'') + ' · ' + (r.locatiePlaats||'');
+    document.getElementById('edit-overige-wrap').style.display='none';
+    document.getElementById('edit-btn-overige').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
+  } else if(!r.locatieId && r.locatieNaam){
+    document.getElementById('edit-loc-search').style.display='block';
+    document.getElementById('edit-loc-search').value='';
+    document.getElementById('edit-loc-pill').style.display='none';
+    document.getElementById('edit-overige-wrap').style.display='block';
+    document.getElementById('edit-overige-naam').value  = r.locatieNaam||'';
+    document.getElementById('edit-overige-pc').value    = r.locatiePostcode||'';
+    document.getElementById('edit-overige-plaats').value= r.locatiePlaats||'';
+    document.getElementById('edit-btn-overige').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Overige locatie sluiten';
   } else {
     document.getElementById('edit-loc-search').style.display='block';
     document.getElementById('edit-loc-search').value='';
     document.getElementById('edit-loc-pill').style.display='none';
+    document.getElementById('edit-overige-wrap').style.display='none';
+    document.getElementById('edit-btn-overige').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
   }
 
   // Toggles
   const isW = r.isWerk;
   const isO = r.isOmweg;
-  document.getElementById('edit-track-isWerk').className = 'toggle-track'+(isW?' checked on-amber':'');
+  document.getElementById('edit-track-isWerk').className  = 'toggle-track'+(isW?' checked on-amber':'');
   document.getElementById('edit-lbl-werk-on').style.color  = isW?'#f59e0b':'#94a3b8';
   document.getElementById('edit-lbl-werk-off').style.color = !isW?'#f87171':'#94a3b8';
   document.getElementById('edit-track-isOmweg').className = 'toggle-track'+(isO?' checked on-amber':'');
   document.getElementById('edit-lbl-omweg-on').style.color = isO?'#f59e0b':'#64748b';
   document.getElementById('edit-richting-wrap').style.display = isO?'block':'none';
+  const omwegRow = document.getElementById('edit-omweg-row');
+  omwegRow.style.opacity = !isW?'.35':'1';
+  omwegRow.style.pointerEvents = !isW?'none':'auto';
 
   const richting = r.omwegRichting||'woonwerk';
   document.getElementById('edit-btn-woonwerk').className='btn btn-sm '+(richting==='woonwerk'?'btn-primary':'btn-ghost');
@@ -1647,6 +1711,17 @@ function closeEditModal(e){
   if(e && e.target !== document.getElementById('edit-modal')) return;
   document.getElementById('edit-modal').classList.remove('open');
   editId = null;
+}
+
+function toggleEditOverige(){
+  const wrap = document.getElementById('edit-overige-wrap');
+  const btn  = document.getElementById('edit-btn-overige');
+  const open = wrap.style.display === 'none';
+  wrap.style.display = open ? 'block' : 'none';
+  btn.innerHTML = open
+    ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Overige locatie sluiten'
+    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
+  if(open) clearEditLoc();
 }
 
 function clearEditLoc(){
@@ -1692,6 +1767,17 @@ function toggleEditSwitch(key){
     const now=!isOn;
     document.getElementById('edit-lbl-werk-on').style.color  = now?'#f59e0b':'#94a3b8';
     document.getElementById('edit-lbl-werk-off').style.color = !now?'#f87171':'#94a3b8';
+    const omwegRow = document.getElementById('edit-omweg-row');
+    if(!now){
+      document.getElementById('edit-track-isOmweg').className='toggle-track';
+      document.getElementById('edit-lbl-omweg-on').style.color='#64748b';
+      document.getElementById('edit-richting-wrap').style.display='none';
+      omwegRow.style.opacity='.35';
+      omwegRow.style.pointerEvents='none';
+    } else {
+      omwegRow.style.opacity='1';
+      omwegRow.style.pointerEvents='auto';
+    }
   }
   if(key==='isOmweg'){
     const now=!isOn;
@@ -1709,19 +1795,37 @@ function saveEditRit(){
   const idx = ritten.findIndex(r=>r.id===editId);
   if(idx===-1) return;
 
-  const datum   = document.getElementById('edit-datum').value;
-  const eindKm  = parseFloat(document.getElementById('edit-eindkm').value)||0;
-  const opmerking = document.getElementById('edit-opmerking').value.trim();
+  const datum    = document.getElementById('edit-datum').value;
+  const eindKm   = parseFloat(document.getElementById('edit-eindkm').value)||0;
+  const opmerking= document.getElementById('edit-opmerking').value.trim();
   if(!datum||!eindKm){ toast('⚠ Vul datum en eindstand in'); return; }
 
   const isWerk  = document.getElementById('edit-track-isWerk').classList.contains('checked');
   const isOmweg = document.getElementById('edit-track-isOmweg').classList.contains('checked');
   const omwegRichting = document.getElementById('edit-btn-werkwoon').classList.contains('btn-primary')?'werkwoon':'woonwerk';
 
-  const loc = editLocId ? locaties.find(l=>l.id===editLocId) : null;
+  const vtId  = document.getElementById('edit-voertuig').value;
+  const vtObj = vtId ? voertuigen.find(v=>String(v.id)===String(vtId)) : null;
+  const voertuigId       = vtObj?.id||null;
+  const voertuigLabel    = vtObj ? ([vtObj.merk,vtObj.type].filter(Boolean).join(' ')||vtObj.kenteken||'') : '';
+  const voertuigKenteken = vtObj?.kenteken||'';
 
-  // Herbereken km op basis van vorige rit
-  const prevKm = idx > 0 ? ritten[idx-1].eindKm : (parseFloat(settings.beginKm)||0);
+  let locatieId, locatieNaam, locatiePostcode, locatiePlaats;
+  const ovWrap = document.getElementById('edit-overige-wrap');
+  if(ovWrap.style.display !== 'none'){
+    locatieId=null;
+    locatieNaam    = document.getElementById('edit-overige-naam').value.trim();
+    locatiePostcode= document.getElementById('edit-overige-pc').value.trim();
+    locatiePlaats  = document.getElementById('edit-overige-plaats').value.trim();
+  } else if(editLocId){
+    const loc = locaties.find(l=>l.id===editLocId);
+    locatieId=loc?.id||null; locatieNaam=loc?.naam||''; locatiePostcode=loc?.postcode||''; locatiePlaats=loc?.plaats||'';
+  } else {
+    locatieId=ritten[idx].locatieId; locatieNaam=ritten[idx].locatieNaam;
+    locatiePostcode=ritten[idx].locatiePostcode; locatiePlaats=ritten[idx].locatiePlaats;
+  }
+
+  const prevKm = idx > 0 ? ritten[idx-1].eindKm : (vtObj?.beginKm||parseFloat(settings.beginKm)||0);
   const afgelegd = Math.max(0, eindKm - prevKm);
   const omwegKm = omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
   let werkKm=0, privKm=0;
@@ -1736,10 +1840,8 @@ function saveEditRit(){
   ritten[idx] = {
     ...ritten[idx],
     datum, eindKm, isWerk, isOmweg, omwegRichting,
-    locatieId:      loc ? loc.id       : ritten[idx].locatieId,
-    locatieNaam:    loc ? loc.naam      : ritten[idx].locatieNaam,
-    locatiePostcode:loc ? loc.postcode  : ritten[idx].locatiePostcode,
-    locatiePlaats:  loc ? loc.plaats    : ritten[idx].locatiePlaats,
+    voertuigId, voertuigLabel, voertuigKenteken,
+    locatieId, locatieNaam, locatiePostcode, locatiePlaats,
     afgelegdKm: afgelegd, werkKm, privKm, opmerking,
   };
 
@@ -1748,6 +1850,7 @@ function saveEditRit(){
   document.getElementById('edit-modal').classList.remove('open');
   toast('✓ Rit aangepast');
 }
+
 
 // ═══════════════════════════════════════════════════════
 // CSV EXPORT
