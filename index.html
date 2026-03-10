@@ -328,6 +328,12 @@
             <input class="inp" type="date" id="rit-datum" onchange="updatePreview()"/>
           </div>
           <div class="field">
+            <label>Tijd</label>
+            <input class="inp" type="time" id="rit-tijd" step="60"/>
+          </div>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
             <label>Eindstand km <span class="err" id="err-eindkm"></span></label>
             <div class="inp-wrap">
               <input class="inp" type="number" id="rit-eindkm" placeholder="bijv. 12500" inputmode="numeric"/>
@@ -740,12 +746,18 @@
         </select>
       </div>
 
-      <!-- Datum + Eindstand -->
+      <!-- Datum + Tijd + Eindstand -->
       <div class="form-grid form-grid-2">
         <div class="field">
           <label>Datum</label>
           <input class="inp" type="date" id="edit-datum"/>
         </div>
+        <div class="field">
+          <label>Tijd</label>
+          <input class="inp" type="time" id="edit-tijd" step="60"/>
+        </div>
+      </div>
+      <div class="form-grid form-grid-2">
         <div class="field">
           <label>Eindstand km</label>
           <div class="inp-wrap">
@@ -1405,7 +1417,11 @@ function addRit(){
     locatieId: loc.id||null, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
     isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
     afgelegdKm:afgelegd, werkKm, privKm, opmerking,
-    logTijd: new Date().toLocaleString('nl-NL', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+    logTijd: (()=>{
+      const d = document.getElementById('rit-datum').value;
+      const t = document.getElementById('rit-tijd').value || new Date().toTimeString().slice(0,5);
+      return d + 'T' + t;
+    })()
   });
   save();
   appendRitToSheet(ritten[ritten.length-1]);
@@ -1413,6 +1429,8 @@ function addRit(){
   // Reset form
   document.getElementById('rit-eindkm').value='';
   document.getElementById('rit-opmerking').value='';
+  document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rit-tijd').value  = new Date().toTimeString().slice(0,5);
   document.getElementById('preview-bar').style.display='none';
   clearLoc();
   ritState.isWerk=true; ritState.isOmweg=false; ritState.omwegRichting='woonwerk';
@@ -1671,6 +1689,7 @@ function openEditModal(id){
   vtSel.value = r.voertuigId||'';
 
   document.getElementById('edit-datum').value    = r.datum;
+  document.getElementById('edit-tijd').value     = r.logTijd ? r.logTijd.slice(11,16) : new Date().toTimeString().slice(0,5);
   document.getElementById('edit-eindkm').value   = r.eindKm;
   document.getElementById('edit-opmerking').value= r.opmerking||'';
 
@@ -1808,8 +1827,10 @@ function saveEditRit(){
   if(idx===-1) return;
 
   const datum    = document.getElementById('edit-datum').value;
+  const tijd     = document.getElementById('edit-tijd').value || new Date().toTimeString().slice(0,5);
   const eindKm   = parseFloat(document.getElementById('edit-eindkm').value)||0;
   const opmerking= document.getElementById('edit-opmerking').value.trim();
+  const logTijd  = datum + 'T' + tijd;
   if(!datum||!eindKm){ toast('⚠ Vul datum en eindstand in'); return; }
 
   const isWerk  = document.getElementById('edit-track-isWerk').classList.contains('checked');
@@ -1854,7 +1875,7 @@ function saveEditRit(){
     datum, eindKm, isWerk, isOmweg, omwegRichting,
     voertuigId, voertuigLabel, voertuigKenteken,
     locatieId, locatieNaam, locatiePostcode, locatiePlaats,
-    afgelegdKm: afgelegd, werkKm, privKm, opmerking,
+    afgelegdKm: afgelegd, werkKm, privKm, opmerking, logTijd,
   };
 
   save();
@@ -1878,7 +1899,7 @@ function exportCSV(){
     r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé',
     r.isOmweg?'Ja':'Nee',
     r.afgelegdKm, r.werkKm||0, r.privKm||0, r.opmerking||'',
-    r.logTijd || ''
+    r.logTijd ? r.logTijd.replace('T',' ') : ''
   ]));
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
@@ -2169,8 +2190,10 @@ function esc(s){ const d=document.createElement('div'); d.textContent=s||''; ret
 // INIT
 // ═══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Set today's date
-  document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
+  // Set today's date + current time
+  const now = new Date();
+  document.getElementById('rit-datum').value = now.toISOString().split('T')[0];
+  document.getElementById('rit-tijd').value  = now.toTimeString().slice(0,5);
   // Zorg dat startpagina zichtbaar is
   document.getElementById('page-ritten').style.display='block';
   // Init
@@ -2264,7 +2287,10 @@ function renderOverzicht(){
                 && !(r.locatiePostcode||'').toLowerCase().includes(locatieF)
                 && !(r.locatiePlaats||'').toLowerCase().includes(locatieF)) return false;
     return true;
-  }).sort((a,b)=>b.datum.localeCompare(a.datum));
+  }).sort((a,b)=>{
+    if(b.datum !== a.datum) return b.datum.localeCompare(a.datum);
+    return (b.logTijd||'').localeCompare(a.logTijd||'');
+  });
 
   const totaalKm = filtered.reduce((s,r)=>s+(r.afgelegdKm||0),0);
   const werkKm   = filtered.reduce((s,r)=>s+(r.werkKm||0),0);
