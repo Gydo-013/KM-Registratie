@@ -262,7 +262,7 @@
     <div class="topbar-brand">
       <div class="brand-dot"></div>
       <span class="brand-title">KM REGISTRATIE</span>
-      <span style="font-size:10px;color:#334155;margin-left:6px;font-weight:400;letter-spacing:.04em;user-select:none;pointer-events:none">v1.31</span>
+      <span style="font-size:10px;color:#334155;margin-left:6px;font-weight:400;letter-spacing:.04em;user-select:none;pointer-events:none">v1.32</span>
       <span class="brand-sub" id="topbar-sub"></span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -330,7 +330,7 @@
           </div>
           <div class="field">
             <label>Tijd</label>
-            <input class="inp" type="time" id="rit-tijd" step="60"/>
+            <input class="inp" type="time" id="rit-tijd" step="1"/>
           </div>
         </div>
         <div class="form-grid form-grid-2">
@@ -636,6 +636,7 @@
     <div class="info-box" style="margin-top:12px">
       <div style="font-size:11px;color:#334155;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Versiegeschiedenis</div>
       <div style="font-size:11px;color:#334155;line-height:1.8;user-select:none;pointer-events:none">
+        <div><span style="color:#3d5068;font-weight:600">v1.32</span> &nbsp;Tijd inclusief seconden</div>
         <div><span style="color:#3d5068;font-weight:600">v1.31</span> &nbsp;Normalisatie logTijd-formaat (NL ↔ ISO)</div>
         <div><span style="color:#3d5068;font-weight:600">v1.30</span> &nbsp;Tijdstip selecteerbaar bij invoer en edit</div>
         <div><span style="color:#3d5068;font-weight:600">v1.29</span> &nbsp;Herberekening volgende ritten na vergeten rit</div>
@@ -793,7 +794,7 @@
         </div>
         <div class="field">
           <label>Tijd</label>
-          <input class="inp" type="time" id="edit-tijd" step="60"/>
+          <input class="inp" type="time" id="edit-tijd" step="1"/>
         </div>
       </div>
       <div class="form-grid form-grid-2">
@@ -1320,9 +1321,9 @@ function normLogTijd(r){
   const lt = r.logTijd;
   if(!lt) return r.datum + 'T00:00';
   // Nieuw formaat: '2026-01-06T08:00' → direct bruikbaar
-  if(/^\d{4}-\d{2}-\d{2}T/.test(lt)) return lt.slice(0,16);
+  if(/^\d{4}-\d{2}-\d{2}T/.test(lt)) return lt.slice(0,19);
   // Oud NL-formaat: '06-01-2026, 08:00' of '06-01-2026 08:00'
-  const m = lt.match(/(\d{2})-(\d{2})-(\d{4})[\s,]+(\d{2}:\d{2})/);
+  const m = lt.match(/(\d{2})-(\d{2})-(\d{4})[\s,]+(\d{2}:\d{2}(:\d{2})?)/);
   if(m) return `${m[3]}-${m[2]}-${m[1]}T${m[4]}`;
   // Fallback: alleen datum
   return r.datum + 'T00:00';
@@ -1496,7 +1497,7 @@ function addRit(){
     afgelegdKm:afgelegd, werkKm, privKm, opmerking,
     logTijd: (()=>{
       const d = document.getElementById('rit-datum').value;
-      const t = document.getElementById('rit-tijd').value || new Date().toTimeString().slice(0,5);
+      const t = document.getElementById('rit-tijd').value || new Date().toTimeString().slice(0,8);
       return d + 'T' + t;
     })()
   });
@@ -1509,7 +1510,7 @@ function addRit(){
   document.getElementById('rit-eindkm').value='';
   document.getElementById('rit-opmerking').value='';
   document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
-  document.getElementById('rit-tijd').value  = new Date().toTimeString().slice(0,5);
+  document.getElementById('rit-tijd').value  = new Date().toTimeString().slice(0,8);
   document.getElementById('preview-bar').style.display='none';
   clearLoc();
   ritState.isWerk=true; ritState.isOmweg=false; ritState.omwegRichting='woonwerk';
@@ -1767,7 +1768,7 @@ function openEditModal(id){
   vtSel.value = r.voertuigId||'';
 
   document.getElementById('edit-datum').value    = r.datum;
-  document.getElementById('edit-tijd').value     = r.logTijd ? r.logTijd.slice(11,16) : new Date().toTimeString().slice(0,5);
+  document.getElementById('edit-tijd').value     = r.logTijd ? r.logTijd.slice(11,19) : new Date().toTimeString().slice(0,8);
   document.getElementById('edit-eindkm').value   = r.eindKm;
   document.getElementById('edit-opmerking').value= r.opmerking||'';
 
@@ -1905,7 +1906,7 @@ function saveEditRit(){
   if(idx===-1) return;
 
   const datum    = document.getElementById('edit-datum').value;
-  const tijd     = document.getElementById('edit-tijd').value || new Date().toTimeString().slice(0,5);
+  const tijd     = document.getElementById('edit-tijd').value || new Date().toTimeString().slice(0,8);
   const eindKm   = parseFloat(document.getElementById('edit-eindkm').value)||0;
   const opmerking= document.getElementById('edit-opmerking').value.trim();
   const logTijd  = datum + 'T' + tijd;
