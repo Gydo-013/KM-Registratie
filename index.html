@@ -2209,58 +2209,129 @@ function importCSV(input){
   reader.onload=function(e){
     try{
       const text=e.target.result.replace(/^\uFEFF/,'');
-      const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
+      // Splits op \r\n of \n, verwijder lege regels
+      const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l);
       if(lines.length<2){ toast('⚠ CSV lijkt leeg'); return; }
 
-      const header=parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
+      // Auto-detecteer scheidingsteken: ; (NL Excel) of , (standaard)
+      const sep = lines[0].split(';').length > lines[0].split(',').length ? ';' : ',';
+      const parseRow = row => parseCSVRowSep(row, sep);
+
+      const header=parseRow(lines[0]).map(h=>h.trim().toLowerCase());
       const col=name=>header.indexOf(name);
 
-      const iDatum    = col('datum');
-      const iEindKm   = col('eindstand km');
-      const iNaam     = col('locatie');
-      const iPc       = col('postcode');
-      const iPlaats   = col('plaats');
-      const iSoort    = col('soort');
-      const iOmweg    = col('omweg');
-      const iAfgelegd = col('totaal km');
-      const iWerk     = col('werk km');
-      const iPriv     = col('privé km');
+      // Probeer ook Nederlandse kolomnamen te matchen
+      const colMatch=(namen)=>{ for(const n of namen){ const i=col(n); if(i>-1) return i; } return -1; };
 
-      if(iDatum===-1||iEindKm===-1){ toast('⚠ Ongeldig CSV-formaat'); return; }
+      const iDatum      = colMatch(['datum','date']);
+      const iVoertuig   = colMatch(['voertuig','vehicle','auto']);
+      const iKenteken   = colMatch(['kenteken','license','plate']);
+      const iEindKm     = colMatch(['eindstand km','eindstand','end km','eind km','kilometerstand','km stand']);
+      const iNaam       = colMatch(['locatie','location','bestemming','naam']);
+      const iPc         = colMatch(['postcode','postal code','zip']);
+      const iPlaats     = colMatch(['plaats','city','stad']);
+      const iSoort      = colMatch(['soort','type','categorie','category']);
+      const iOmweg      = colMatch(['omweg','detour']);
+      const iAfgelegd   = colMatch(['totaal km','afgelegd','totaal','total km','gereden km']);
+      const iWerk       = colMatch(['werk km','business km','zakelijk']);
+      const iPriv       = colMatch(['privé km','prive km','private km','privé','prive']);
+      const iOpmerking  = colMatch(['opmerking','note','notitie','comment']);
+      const iGelogd     = colMatch(['gelogd op','logged','logtijd','log tijd','log time']);
+
+      if(iDatum===-1||iEindKm===-1){
+        toast('⚠ Kolommen "Datum" en "Eindstand km" niet gevonden. Gevonden: ' + header.join(', '));
+        return;
+      }
+
+      // Bouw een lookup: kenteken/naam → voertuig-id
+      const vtLookup = {};
+      voertuigen.forEach(v=>{
+        if(v.kenteken) vtLookup[v.kenteken.toUpperCase()] = v.id;
+        const label = [v.merk,v.type].filter(Boolean).join(' ').toUpperCase();
+        if(label) vtLookup[label] = v.id;
+      });
 
       const imported=[];
+      const ts = Date.now();
       for(let i=1;i<lines.length;i++){
-        const c=parseCSVRow(lines[i]);
-        if(c.length<3) continue;
+        const c=parseRow(lines[i]);
+        if(c.length < 2) continue;
         const soort=(c[iSoort]||'').toLowerCase();
         const isOmweg=(c[iOmweg]||'').toLowerCase()==='ja';
         const isWerk=isOmweg||soort==='werk';
-        const eindKm=parseFloat((c[iEindKm]||'').replace(',','.'))||0;
+        // Accepteer zowel punt als komma als decimaalteken
+        const parseNum = v => parseFloat((v||'').replace(',','.').replace(/[^0-9.\-]/g,''))||0;
+        const eindKm=parseNum(c[iEindKm]);
         if(!eindKm) continue;
+
+        // Koppel voertuig via kenteken of naam
+        const csvKenteken = iKenteken>-1 ? (c[iKenteken]||'').toUpperCase() : '';
+        const csvVoertuig = iVoertuig>-1 ? (c[iVoertuig]||'').toUpperCase() : '';
+        const voertuigId  = vtLookup[csvKenteken] || vtLookup[csvVoertuig] || getActiefVoertuig()?.id || null;
+        const vtObj = voertuigen.find(v=>v.id===voertuigId);
+        const voertuigLabel   = vtObj ? ([vtObj.merk,vtObj.type].filter(Boolean).join(' ')||vtObj.kenteken||'') : (c[iVoertuig]||'');
+        const voertuigKenteken= vtObj ? (vtObj.kenteken||'') : csvKenteken;
+
+        // Gebruik 'Gelogd op' als logTijd zodat volgorde klopt
+        let logTijd = '';
+        if(iGelogd>-1 && c[iGelogd]){
+          // Formaat: "2026-01-05 01:25:00" → "2026-01-05T01:25:00"
+          logTijd = c[iGelogd].trim().replace(' ','T');
+        }
+        if(!logTijd) logTijd = c[iDatum] + 'T00:00:00';
+
         imported.push({
-          id: Date.now()+i,
-          datum:        c[iDatum]||'',
+          id: ts*1000+i,
+          datum:           c[iDatum]||'',
           eindKm,
-          locatieNaam:     c[iNaam]||'',
+          locatieNaam:     iNaam>-1?c[iNaam]||'':'',
           locatiePostcode: iPc>-1?c[iPc]||'':'',
           locatiePlaats:   iPlaats>-1?c[iPlaats]||'':'',
-          locatieId:    null,
+          locatieId:       null,
           isWerk,
           isOmweg,
-          afgelegdKm: parseFloat((c[iAfgelegd]||'0').replace(',','.'))||0,
-          werkKm:     parseFloat((c[iWerk]||'0').replace(',','.'))||0,
-          privKm:     parseFloat((c[iPriv]||'0').replace(',','.'))||0,
+          afgelegdKm:      iAfgelegd>-1?parseNum(c[iAfgelegd]):0,
+          werkKm:          iWerk>-1?parseNum(c[iWerk]):0,
+          privKm:          iPriv>-1?parseNum(c[iPriv]):0,
+          opmerking:       iOpmerking>-1?c[iOpmerking]||'':'',
+          logTijd,
+          voertuigId,
+          voertuigLabel,
+          voertuigKenteken,
         });
       }
 
       if(!imported.length){ toast('⚠ Geen geldige rijen gevonden'); return; }
 
-      const existing=new Set(ritten.map(r=>r.datum+'|'+r.eindKm));
-      const nieuw=imported.filter(r=>!existing.has(r.datum+'|'+r.eindKm));
-      const dupes=imported.length-nieuw.length;
+      // Duplicaat-check: rit is een duplicaat als datum+logTijd al bestaat
+      const mkKey = r => {
+        const lt = r.logTijd ? r.logTijd.slice(0,19) : (r.datum+'|'+r.eindKm);
+        return lt;
+      };
+      const existingKeys = new Set(ritten.map(mkKey));
+      const dupes = imported.filter(r => existingKeys.has(mkKey(r)));
+      const nieuw  = imported.filter(r => !existingKeys.has(mkKey(r)));
+
+      // Als er duplicaten zijn: vraag of ze overschreven moeten worden
+      let teVerwerken = nieuw;
+      if(dupes.length > 0 && nieuw.length === 0){
+        // Alles is duplicaat - vraag of overschrijven gewenst is
+        if(!confirm(`Alle ${imported.length} rijen bestaan al in de app.\nWil je ze overschrijven met de CSV-data?`)) return;
+        teVerwerken = imported;
+        // Verwijder bestaande dupes
+        const dupKeys = new Set(imported.map(mkKey));
+        ritten = ritten.filter(r => !dupKeys.has(mkKey(r)));
+      } else if(dupes.length > 0){
+        // Sommige zijn duplicaat
+        if(confirm(`${nieuw.length} nieuwe rijen gevonden, ${dupes.length} bestaan al.\nOok de bestaande rijen overschrijven?`)){
+          teVerwerken = imported;
+          const dupKeys = new Set(imported.map(mkKey));
+          ritten = ritten.filter(r => !dupKeys.has(mkKey(r)));
+        }
+      }
 
       // Samenvoegen en chronologisch sorteren
-      ritten=[...ritten,...nieuw].sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
+      ritten=[...ritten,...teVerwerken].sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
 
       // Herbereken alle ritten per voertuig volledig opnieuw op basis van de chronologische volgorde.
       // Zo gaat de app altijd verder vanaf de meest recente stand, ongeacht wanneer de CSV-data vandaan komt.
@@ -2292,8 +2363,10 @@ function importCSV(input){
       renderRitten();
       input.value='';
 
-      let msg=`✓ ${nieuw.length} rijen geïmporteerd`;
-      if(dupes) msg+=` (${dupes} al aanwezig overgeslagen)`;
+      const aantalNieuw = teVerwerken.length;
+      const aantalDupe  = imported.length - nieuw.length;
+      let msg=`✓ ${aantalNieuw} rijen geïmporteerd`;
+      if(aantalDupe && teVerwerken.length === nieuw.length) msg+=` (${aantalDupe} al aanwezig overgeslagen)`;
       toast(msg);
     }catch(err){
       toast('⚠ Fout bij importeren: '+err.message);
@@ -2302,12 +2375,13 @@ function importCSV(input){
   reader.readAsText(file,'UTF-8');
 }
 
-function parseCSVRow(row){
+function parseCSVRow(row){ return parseCSVRowSep(row, ','); }
+function parseCSVRowSep(row, sep){
   const result=[]; let cur=''; let inQ=false;
   for(let i=0;i<row.length;i++){
     const ch=row[i];
     if(ch==='"'){ inQ=!inQ; }
-    else if(ch===','&&!inQ){ result.push(cur); cur=''; }
+    else if(ch===sep&&!inQ){ result.push(cur); cur=''; }
     else{ cur+=ch; }
   }
   result.push(cur);
