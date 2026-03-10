@@ -353,6 +353,27 @@
               </div>
             </div>
           </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px;align-self:flex-start" onclick="toggleOverigeLoc()" id="btn-overige">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Overige locatie
+          </button>
+          <div id="overige-loc-wrap" style="display:none;margin-top:8px;padding:12px;background:#0f172a;border-radius:8px;border:1px solid #334155">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#f59e0b;text-transform:uppercase;margin-bottom:10px">Eenmalige locatie</div>
+            <div class="form-grid form-grid-2" style="gap:10px;margin-bottom:10px">
+              <div class="field">
+                <label>Naam</label>
+                <input class="inp" type="text" id="overige-naam" placeholder="Naam locatie"/>
+              </div>
+              <div class="field">
+                <label>Postcode</label>
+                <input class="inp" type="text" id="overige-pc" placeholder="1234 AB"/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Plaats</label>
+              <input class="inp" type="text" id="overige-plaats" placeholder="Amsterdam"/>
+            </div>
+          </div>
         </div>
 
         <div class="toggle-group" style="flex-wrap:wrap;gap:10px">
@@ -962,6 +983,35 @@ function selectLoc(id){
   document.getElementById('pill-sub').textContent=loc.postcode+' · '+loc.plaats;
   document.getElementById('err-locatie').textContent='';
 }
+function toggleOverigeLoc(){
+  const wrap = document.getElementById('overige-loc-wrap');
+  const btn  = document.getElementById('btn-overige');
+  const open = wrap.style.display === 'none';
+  wrap.style.display = open ? 'block' : 'none';
+  btn.innerHTML = open
+    ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Overige locatie sluiten'
+    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
+  if(open){
+    // Als overige locatie opengaat, wis de geselecteerde locatie
+    clearLoc();
+    ritState.selLocId = null;
+  } else {
+    // Sluiten: wis de overige velden
+    document.getElementById('overige-naam').value='';
+    document.getElementById('overige-pc').value='';
+    document.getElementById('overige-plaats').value='';
+  }
+}
+
+function getOverigeLoc(){
+  if(document.getElementById('overige-loc-wrap').style.display==='none') return null;
+  const naam  = document.getElementById('overige-naam').value.trim();
+  const pc    = document.getElementById('overige-pc').value.trim();
+  const plaats= document.getElementById('overige-plaats').value.trim();
+  if(!naam && !pc && !plaats) return null;
+  return { naam, postcode:pc, plaats, id:null };
+}
+
 function clearLoc(){
   ritState.selLocId=null;
   document.getElementById('loc-search').style.display='block';
@@ -985,8 +1035,10 @@ function addRit(){
     document.getElementById('err-eindkm').textContent='';
     document.getElementById('rit-eindkm').classList.remove('err');
   }
-  if(!ritState.selLocId){
-    document.getElementById('err-locatie').textContent='Selecteer een locatie';
+
+  const overige = getOverigeLoc();
+  if(!ritState.selLocId && !overige){
+    document.getElementById('err-locatie').textContent='Selecteer een locatie of vul een overige locatie in';
     ok=false;
   } else {
     document.getElementById('err-locatie').textContent='';
@@ -1004,10 +1056,11 @@ function addRit(){
     privKm=!ritState.isWerk?afgelegd:0;
   }
   privKm=Math.round(privKm*10)/10;
-  const loc=locaties.find(l=>l.id===ritState.selLocId);
+
+  const loc = overige || locaties.find(l=>l.id===ritState.selLocId);
   ritten.push({
     id:Date.now(), datum, eindKm:huidig,
-    locatieId:loc.id, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
+    locatieId: loc.id||null, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
     isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
     afgelegdKm:afgelegd, werkKm, privKm
   });
@@ -1027,6 +1080,12 @@ function addRit(){
   document.getElementById('lbl-werk-on').style.color='#f59e0b';
   document.getElementById('lbl-werk-off').style.color='#94a3b8';
   document.getElementById('lbl-omweg-on').style.color='#64748b';
+  // Reset overige locatie
+  document.getElementById('overige-naam').value='';
+  document.getElementById('overige-pc').value='';
+  document.getElementById('overige-plaats').value='';
+  document.getElementById('overige-loc-wrap').style.display='none';
+  document.getElementById('btn-overige').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
 
   renderRitten();
   toast('✓ Rit opgeslagen');
