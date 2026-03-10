@@ -233,6 +233,24 @@
   .g-logout-btn{background:none;border:none;color:#475569;font-size:11px;cursor:pointer;padding:4px 6px;border-radius:4px}
   .g-logout-btn:active{color:#f87171}
   .sheet-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:4px}
+
+  /* Edit modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;z-index:500;
+    background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+    align-items:flex-end;justify-content:center;
+  }
+  .modal-overlay.open{display:flex}
+  .modal{
+    background:#1e293b;border:1px solid #334155;
+    border-radius:16px 16px 0 0;padding:20px 18px;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    width:100%;max-width:600px;max-height:90svh;overflow-y:auto;
+    animation:slideup .25s ease;
+  }
+  @keyframes slideup{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-title{font-size:16px;font-weight:700;color:#f1f5f9;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+  .modal-close{background:none;border:none;color:#64748b;cursor:pointer;font-size:20px;line-height:1;padding:4px}
   .sheet-status.ok{background:rgba(52,211,153,.12);color:#34d399}
   .sheet-status.err{background:rgba(248,113,113,.12);color:#f87171}
   .sheet-status.pending{background:rgba(245,158,11,.12);color:#f59e0b}
@@ -553,6 +571,75 @@
       </div>
       <p><strong>Omweg-schakelaar</strong> op de hoofdpagina:<br/>
       Kies de richting: <strong>Woon→Werk</strong> gebruikt de woon-werk afstand, <strong>Werk→Woon</strong> gebruikt de werk-woon afstand. De ingestelde km gaan als werkkilometers, eventuele extra km als privékilometers.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="modal">
+    <div class="modal-title">
+      Rit aanpassen
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="form-grid" style="gap:14px">
+      <div class="form-grid form-grid-2">
+        <div class="field">
+          <label>Datum</label>
+          <input class="inp" type="date" id="edit-datum"/>
+        </div>
+        <div class="field">
+          <label>Eindstand km</label>
+          <div class="inp-wrap">
+            <input class="inp" type="number" id="edit-eindkm" inputmode="numeric"/>
+            <span class="inp-suffix">km</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Aankomstlocatie</label>
+        <div id="edit-loc-dropdown" style="position:relative">
+          <input class="inp" type="text" id="edit-loc-search" placeholder="Zoek locatie…" autocomplete="off"
+            oninput="filterEditLocs()" onfocus="openEditLocDropdown()" onblur="closeEditLocDropdown()"/>
+          <div class="dropdown-list" id="edit-loc-list-dd" style="display:none"></div>
+        </div>
+        <div id="edit-loc-pill" style="display:none;margin-top:6px" onclick="clearEditLoc()">
+          <div class="loc-selected">
+            <div class="loc-selected-info">
+              <span class="loc-selected-name" id="edit-pill-naam"></span>
+              <span class="loc-selected-sub mono" id="edit-pill-sub"></span>
+            </div>
+            <span class="loc-clear">✕</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toggle-group" style="flex-wrap:wrap;gap:10px">
+        <div class="toggle-row" onclick="toggleEditSwitch('isWerk')">
+          <span class="toggle-label" id="edit-lbl-werk-off" style="color:#94a3b8">Privé</span>
+          <div class="toggle-track checked on-amber" id="edit-track-isWerk"><div class="toggle-thumb"></div></div>
+          <span class="toggle-label active" id="edit-lbl-werk-on" style="color:#f59e0b">Werk</span>
+        </div>
+        <div class="toggle-divider"></div>
+        <div class="toggle-row" onclick="toggleEditSwitch('isOmweg')">
+          <span class="toggle-label" style="color:#94a3b8">Directe rit</span>
+          <div class="toggle-track" id="edit-track-isOmweg"><div class="toggle-thumb"></div></div>
+          <span class="toggle-label" id="edit-lbl-omweg-on" style="color:#64748b">Omweg</span>
+        </div>
+        <div id="edit-richting-wrap" style="display:none;width:100%;padding-top:10px;border-top:1px solid #334155">
+          <div style="font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:700">Richting omweg</div>
+          <div style="display:flex;gap:8px">
+            <button id="edit-btn-woonwerk" class="btn btn-primary btn-sm" onclick="setEditRichting('woonwerk')">🏠→🏢 Woon-werk</button>
+            <button id="edit-btn-werkwoon" class="btn btn-ghost btn-sm" onclick="setEditRichting('werkwoon')">🏢→🏠 Werk-woon</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-primary" onclick="saveEditRit()" style="flex:1">Opslaan</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()" style="flex:1">Annuleren</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1120,9 +1207,14 @@ function renderTabel(){
       <td class="mono text-right">${fmt(r.afgelegdKm)}</td>
       <td class="mono text-right" style="color:#34d399">${fmt(r.werkKm||0)}</td>
       <td class="mono text-right" style="color:#f87171">${fmtPriv(r.privKm||0)}</td>
-      <td><button class="del-btn" ontouchend="delRit(${r.id})" onclick="delRit(${r.id})">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
-      </button></td>
+      <td style="white-space:nowrap">
+        <button class="del-btn" ontouchend="openEditModal(${r.id})" onclick="openEditModal(${r.id})" title="Aanpassen" style="color:#475569">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="del-btn" ontouchend="delRit(${r.id})" onclick="delRit(${r.id})" title="Verwijderen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </td>
     </tr>`).join('');
 
   const totW=filtered.reduce((s,r)=>s+(r.werkKm||0),0);
@@ -1142,6 +1234,156 @@ function delRit(id){
   save();
   renderRitten();
   toast('Rit verwijderd');
+}
+
+// ═══════════════════════════════════════════════════════
+// EDIT MODAL
+// ═══════════════════════════════════════════════════════
+let editId = null;
+let editLocId = null;
+
+function openEditModal(id){
+  const r = ritten.find(r=>r.id===id);
+  if(!r) return;
+  editId = id;
+  editLocId = r.locatieId||null;
+
+  document.getElementById('edit-datum').value = r.datum;
+  document.getElementById('edit-eindkm').value = r.eindKm;
+
+  // Locatie pill
+  if(r.locatieNaam){
+    document.getElementById('edit-loc-search').style.display='none';
+    document.getElementById('edit-loc-pill').style.display='block';
+    document.getElementById('edit-pill-naam').textContent = r.locatieNaam;
+    document.getElementById('edit-pill-sub').textContent  = (r.locatiePostcode||'') + ' · ' + (r.locatiePlaats||'');
+  } else {
+    document.getElementById('edit-loc-search').style.display='block';
+    document.getElementById('edit-loc-search').value='';
+    document.getElementById('edit-loc-pill').style.display='none';
+  }
+
+  // Toggles
+  const isW = r.isWerk;
+  const isO = r.isOmweg;
+  document.getElementById('edit-track-isWerk').className = 'toggle-track'+(isW?' checked on-amber':'');
+  document.getElementById('edit-lbl-werk-on').style.color  = isW?'#f59e0b':'#94a3b8';
+  document.getElementById('edit-lbl-werk-off').style.color = !isW?'#f87171':'#94a3b8';
+  document.getElementById('edit-track-isOmweg').className = 'toggle-track'+(isO?' checked on-amber':'');
+  document.getElementById('edit-lbl-omweg-on').style.color = isO?'#f59e0b':'#64748b';
+  document.getElementById('edit-richting-wrap').style.display = isO?'block':'none';
+
+  const richting = r.omwegRichting||'woonwerk';
+  document.getElementById('edit-btn-woonwerk').className='btn btn-sm '+(richting==='woonwerk'?'btn-primary':'btn-ghost');
+  document.getElementById('edit-btn-werkwoon').className='btn btn-sm '+(richting==='werkwoon'?'btn-primary':'btn-ghost');
+
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal(e){
+  if(e && e.target !== document.getElementById('edit-modal')) return;
+  document.getElementById('edit-modal').classList.remove('open');
+  editId = null;
+}
+
+function clearEditLoc(){
+  editLocId = null;
+  document.getElementById('edit-loc-search').style.display='block';
+  document.getElementById('edit-loc-search').value='';
+  document.getElementById('edit-loc-pill').style.display='none';
+}
+
+function filterEditLocs(){
+  const q = document.getElementById('edit-loc-search').value;
+  const list = document.getElementById('edit-loc-list-dd');
+  const matches = locaties.filter(l=>
+    l.naam.toLowerCase().includes(q.toLowerCase())||
+    l.postcode.toLowerCase().includes(q.toLowerCase())||
+    l.plaats.toLowerCase().includes(q.toLowerCase())
+  );
+  if(!matches.length){ list.style.display='none'; return; }
+  list.innerHTML = matches.map(l=>`
+    <div class="dropdown-item" onmousedown="selectEditLoc(${l.id})">
+      <div class="dropdown-item-name">${esc(l.naam)}</div>
+      <div class="dropdown-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
+    </div>`).join('');
+  list.style.display='block';
+}
+function openEditLocDropdown(){ filterEditLocs(); }
+function closeEditLocDropdown(){ setTimeout(()=>document.getElementById('edit-loc-list-dd').style.display='none',160); }
+
+function selectEditLoc(id){
+  editLocId = id;
+  const loc = locaties.find(l=>l.id===id);
+  document.getElementById('edit-loc-search').style.display='none';
+  document.getElementById('edit-loc-list-dd').style.display='none';
+  document.getElementById('edit-loc-pill').style.display='block';
+  document.getElementById('edit-pill-naam').textContent = loc.naam;
+  document.getElementById('edit-pill-sub').textContent  = loc.postcode+' · '+loc.plaats;
+}
+
+function toggleEditSwitch(key){
+  const track = document.getElementById('edit-track-'+key);
+  const isOn  = track.classList.contains('checked');
+  track.className = 'toggle-track'+(!isOn?' checked on-amber':'');
+  if(key==='isWerk'){
+    const now=!isOn;
+    document.getElementById('edit-lbl-werk-on').style.color  = now?'#f59e0b':'#94a3b8';
+    document.getElementById('edit-lbl-werk-off').style.color = !now?'#f87171':'#94a3b8';
+  }
+  if(key==='isOmweg'){
+    const now=!isOn;
+    document.getElementById('edit-lbl-omweg-on').style.color = now?'#f59e0b':'#64748b';
+    document.getElementById('edit-richting-wrap').style.display = now?'block':'none';
+  }
+}
+
+function setEditRichting(r){
+  document.getElementById('edit-btn-woonwerk').className='btn btn-sm '+(r==='woonwerk'?'btn-primary':'btn-ghost');
+  document.getElementById('edit-btn-werkwoon').className='btn btn-sm '+(r==='werkwoon'?'btn-primary':'btn-ghost');
+}
+
+function saveEditRit(){
+  const idx = ritten.findIndex(r=>r.id===editId);
+  if(idx===-1) return;
+
+  const datum   = document.getElementById('edit-datum').value;
+  const eindKm  = parseFloat(document.getElementById('edit-eindkm').value)||0;
+  if(!datum||!eindKm){ toast('⚠ Vul datum en eindstand in'); return; }
+
+  const isWerk  = document.getElementById('edit-track-isWerk').classList.contains('checked');
+  const isOmweg = document.getElementById('edit-track-isOmweg').classList.contains('checked');
+  const omwegRichting = document.getElementById('edit-btn-werkwoon').classList.contains('btn-primary')?'werkwoon':'woonwerk';
+
+  const loc = editLocId ? locaties.find(l=>l.id===editLocId) : null;
+
+  // Herbereken km op basis van vorige rit
+  const prevKm = idx > 0 ? ritten[idx-1].eindKm : (parseFloat(settings.beginKm)||0);
+  const afgelegd = Math.max(0, eindKm - prevKm);
+  const omwegKm = omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
+  let werkKm=0, privKm=0;
+  if(isOmweg){
+    werkKm = Math.min(omwegKm, afgelegd);
+    privKm = Math.round(Math.max(0, afgelegd-werkKm)*10)/10;
+  } else {
+    werkKm = isWerk ? afgelegd : 0;
+    privKm = Math.round((!isWerk ? afgelegd : 0)*10)/10;
+  }
+
+  ritten[idx] = {
+    ...ritten[idx],
+    datum, eindKm, isWerk, isOmweg, omwegRichting,
+    locatieId:      loc ? loc.id       : ritten[idx].locatieId,
+    locatieNaam:    loc ? loc.naam      : ritten[idx].locatieNaam,
+    locatiePostcode:loc ? loc.postcode  : ritten[idx].locatiePostcode,
+    locatiePlaats:  loc ? loc.plaats    : ritten[idx].locatiePlaats,
+    afgelegdKm: afgelegd, werkKm, privKm,
+  };
+
+  save();
+  renderRitten();
+  document.getElementById('edit-modal').classList.remove('open');
+  toast('✓ Rit aangepast');
 }
 
 // ═══════════════════════════════════════════════════════
