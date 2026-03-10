@@ -1276,16 +1276,27 @@ function updatePreview(){
   document.getElementById('prev-priv').textContent=fmtPriv(priv);
 }
 
+// Normaliseer logTijd naar sorteerbaar ISO-formaat: '2026-01-06T08:00'
+function normLogTijd(r){
+  const lt = r.logTijd;
+  if(!lt) return r.datum + 'T00:00';
+  // Nieuw formaat: '2026-01-06T08:00' → direct bruikbaar
+  if(/^\d{4}-\d{2}-\d{2}T/.test(lt)) return lt.slice(0,16);
+  // Oud NL-formaat: '06-01-2026, 08:00' of '06-01-2026 08:00'
+  const m = lt.match(/(\d{2})-(\d{2})-(\d{4})[\s,]+(\d{2}:\d{2})/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}T${m[4]}`;
+  // Fallback: alleen datum
+  return r.datum + 'T00:00';
+}
+
 function getPrevKmForDate(datumTijd, excludeId, voertuigId){
-  // datumTijd = 'YYYY-MM-DDTHH:MM' of 'YYYY-MM-DD'
   const v = voertuigId ? voertuigen.find(v=>v.id===voertuigId) : getActiefVoertuig();
   const beginKm = v ? (v.beginKm||0) : (parseFloat(settings.beginKm)||0);
   const vtRitten = (v ? ritten.filter(r=>r.voertuigId===v.id) : ritten)
-    .filter(r=>r.id!==excludeId)
-    .filter(r=>(r.logTijd||r.datum) < datumTijd || (r.logTijd||r.datum) === datumTijd)
-    .sort((a,b)=>(a.logTijd||a.datum).localeCompare(b.logTijd||b.datum));
-  // Neem de laatste rit die strikt vóór datumTijd valt
-  const before = vtRitten.filter(r=>(r.logTijd||r.datum) < datumTijd);
+    .filter(r=>r.id!==excludeId);
+  const before = vtRitten
+    .filter(r=>normLogTijd(r) < datumTijd)
+    .sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
   return before.length ? before[before.length-1].eindKm : beginKm;
 }
 
@@ -1295,14 +1306,14 @@ function getPrevKm(){
   return getPrevKmForDate(datum + 'T' + tijd, null, null);
 }
 
-// Herbereken afgelegdKm voor alle ritten die NA gewijzigde rit vallen (zelfde voertuig)
 function herbereken(gewijzigdLogTijd, voertuigId){
   const vtRitten = ritten
     .filter(r=>r.voertuigId===voertuigId)
-    .sort((a,b)=>(a.logTijd||a.datum).localeCompare(b.logTijd||b.datum));
+    .sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
   vtRitten.forEach(r=>{
-    if((r.logTijd||r.datum) <= gewijzigdLogTijd) return;
-    const prevKm = getPrevKmForDate(r.logTijd||r.datum, r.id, voertuigId);
+    const rlt = normLogTijd(r);
+    if(rlt <= gewijzigdLogTijd) return;
+    const prevKm = getPrevKmForDate(rlt, r.id, voertuigId);
     const afgelegd = Math.max(0, r.eindKm - prevKm);
     const omwegKm = r.omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
     let werkKm=0, privKm=0;
@@ -1634,8 +1645,7 @@ function buildYearFilter(){
 function renderTabel(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
   const filtered=[...ritten].filter(r=>new Date(r.datum).getFullYear()===yr).sort((a,b)=>{
-    if(b.datum !== a.datum) return b.datum.localeCompare(a.datum);
-    return (b.logTijd||'').localeCompare(a.logTijd||'');
+    return normLogTijd(b).localeCompare(normLogTijd(a));
   });
   const tbody=document.getElementById('rit-tbody');
   const tfoot=document.getElementById('rit-tfoot');
@@ -2316,10 +2326,7 @@ function renderOverzicht(){
                 && !(r.locatiePostcode||'').toLowerCase().includes(locatieF)
                 && !(r.locatiePlaats||'').toLowerCase().includes(locatieF)) return false;
     return true;
-  }).sort((a,b)=>{
-    if(b.datum !== a.datum) return b.datum.localeCompare(a.datum);
-    return (b.logTijd||'').localeCompare(a.logTijd||'');
-  });
+  }).sort((a,b)=>normLogTijd(b).localeCompare(normLogTijd(a)));
 
   const totaalKm = filtered.reduce((s,r)=>s+(r.afgelegdKm||0),0);
   const werkKm   = filtered.reduce((s,r)=>s+(r.werkKm||0),0);
