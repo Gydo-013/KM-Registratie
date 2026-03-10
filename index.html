@@ -1276,20 +1276,47 @@ function updatePreview(){
   document.getElementById('prev-priv').textContent=fmtPriv(priv);
 }
 
-function getPrevKmForDate(datum, excludeId){
-  // Zoek de eindstand van de laatste rit vóór deze datum (voor hetzelfde voertuig)
-  const v = getActiefVoertuig();
+function getPrevKmForDate(datumTijd, excludeId, voertuigId){
+  // datumTijd = 'YYYY-MM-DDTHH:MM' of 'YYYY-MM-DD'
+  const v = voertuigId ? voertuigen.find(v=>v.id===voertuigId) : getActiefVoertuig();
   const beginKm = v ? (v.beginKm||0) : (parseFloat(settings.beginKm)||0);
   const vtRitten = (v ? ritten.filter(r=>r.voertuigId===v.id) : ritten)
     .filter(r=>r.id!==excludeId)
-    .filter(r=>r.datum <= datum)
-    .sort((a,b)=> a.datum!==b.datum ? a.datum.localeCompare(b.datum) : (a.logTijd||'').localeCompare(b.logTijd||''));
-  return vtRitten.length ? vtRitten[vtRitten.length-1].eindKm : beginKm;
+    .filter(r=>(r.logTijd||r.datum) < datumTijd || (r.logTijd||r.datum) === datumTijd)
+    .sort((a,b)=>(a.logTijd||a.datum).localeCompare(b.logTijd||b.datum));
+  // Neem de laatste rit die strikt vóór datumTijd valt
+  const before = vtRitten.filter(r=>(r.logTijd||r.datum) < datumTijd);
+  return before.length ? before[before.length-1].eindKm : beginKm;
 }
 
 function getPrevKm(){
   const datum = document.getElementById('rit-datum').value || new Date().toISOString().split('T')[0];
-  return getPrevKmForDate(datum, null);
+  const tijd  = document.getElementById('rit-tijd').value || '00:00';
+  return getPrevKmForDate(datum + 'T' + tijd, null, null);
+}
+
+// Herbereken afgelegdKm voor alle ritten die NA gewijzigde rit vallen (zelfde voertuig)
+function herbereken(gewijzigdLogTijd, voertuigId){
+  const vtRitten = ritten
+    .filter(r=>r.voertuigId===voertuigId)
+    .sort((a,b)=>(a.logTijd||a.datum).localeCompare(b.logTijd||b.datum));
+  vtRitten.forEach(r=>{
+    if((r.logTijd||r.datum) <= gewijzigdLogTijd) return;
+    const prevKm = getPrevKmForDate(r.logTijd||r.datum, r.id, voertuigId);
+    const afgelegd = Math.max(0, r.eindKm - prevKm);
+    const omwegKm = r.omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
+    let werkKm=0, privKm=0;
+    if(r.isOmweg){
+      werkKm = Math.min(omwegKm, afgelegd);
+      privKm = Math.round(Math.max(0, afgelegd-werkKm)*10)/10;
+    } else {
+      werkKm = r.isWerk ? afgelegd : 0;
+      privKm = Math.round((!r.isWerk ? afgelegd : 0)*10)/10;
+    }
+    r.afgelegdKm = afgelegd;
+    r.werkKm = werkKm;
+    r.privKm = privKm;
+  });
 }
 
 // Location dropdown in rit form
@@ -1423,6 +1450,8 @@ function addRit(){
       return d + 'T' + t;
     })()
   });
+  const nieuweLt = ritten[ritten.length-1].logTijd;
+  herbereken(nieuweLt, av?.id||null);
   save();
   appendRitToSheet(ritten[ritten.length-1]);
 
@@ -1858,7 +1887,7 @@ function saveEditRit(){
     locatiePostcode=ritten[idx].locatiePostcode; locatiePlaats=ritten[idx].locatiePlaats;
   }
 
-  const prevKm = getPrevKmForDate(datum, editId) ;
+  const prevKm = getPrevKmForDate(logTijd, editId, voertuigId);
   const afgelegd = Math.max(0, eindKm - prevKm);
   const omwegKm = omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
   let werkKm=0, privKm=0;
@@ -1877,7 +1906,7 @@ function saveEditRit(){
     locatieId, locatieNaam, locatiePostcode, locatiePlaats,
     afgelegdKm: afgelegd, werkKm, privKm, opmerking, logTijd,
   };
-
+  herbereken(logTijd, voertuigId);
   save();
   renderRitten();
   document.getElementById('edit-modal').classList.remove('open');
