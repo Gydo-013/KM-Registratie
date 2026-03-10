@@ -538,14 +538,12 @@
       <p style="color:#64748b;font-size:13px;margin-top:5px">Beheer uw voertuigen en standaardinstellingen.</p>
     </div>
 
-    <!-- Voertuigen lijst -->
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">Mijn voertuigen</div>
       <div id="vt-list"></div>
       <div class="empty" id="vt-empty" style="display:none">Nog geen voertuigen toegevoegd.</div>
     </div>
 
-    <!-- Voertuig toevoegen -->
     <div class="card" style="margin-bottom:12px">
       <div class="card-title" id="vt-form-title">Voertuig toevoegen</div>
       <div class="form-grid" style="gap:14px">
@@ -574,7 +572,6 @@
           </div>
         </div>
 
-        <!-- Brandstof -->
         <div class="field">
           <label>Brandstof <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(meerdere mogelijk)</span></label>
           <div style="display:flex;gap:8px;flex-wrap:wrap" id="brandstof-knoppen">
@@ -585,7 +582,6 @@
           </div>
         </div>
 
-        <!-- Voertuigkleur -->
         <div class="field">
           <label>Voertuigkleur</label>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -722,7 +718,6 @@
     <p style="color:#64748b;font-size:13px;margin-top:5px">Filter en analyseer uw ritten.</p>
   </div>
 
-  <!-- Snelknoppen -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-title" style="margin-bottom:12px">Snelfilter</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="ov-snelknoppen"></div>
@@ -738,7 +733,6 @@
     </div>
   </div>
 
-  <!-- Extra filters -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-title" style="margin-bottom:12px">Filters</div>
     <div class="form-grid" style="gap:12px">
@@ -770,7 +764,6 @@
     </div>
   </div>
 
-  <!-- Resultaten -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-title" style="margin-bottom:14px">Resultaat <span id="ov-count" style="color:#64748b;font-size:12px;font-weight:400"></span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
@@ -788,7 +781,6 @@
       </div>
     </div>
 
-    <!-- Mini tabel -->
     <div style="overflow-x:auto">
       <table class="rit-table" id="ov-table" style="display:none">
         <thead>
@@ -804,6 +796,7 @@
   </div>
 </div>
 </div>
+
 <div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
   <div class="modal">
     <div class="modal-title">
@@ -812,7 +805,6 @@
     </div>
     <div class="form-grid" style="gap:14px">
 
-      <!-- Voertuig -->
       <div class="field">
         <label>Voertuig</label>
         <select class="inp" id="edit-voertuig">
@@ -820,7 +812,6 @@
         </select>
       </div>
 
-      <!-- Datum + Tijd + Eindstand -->
       <div class="form-grid form-grid-2">
         <div class="field">
           <label>Datum</label>
@@ -841,7 +832,6 @@
         </div>
       </div>
 
-      <!-- Locatie -->
       <div class="field">
         <label>Aankomstlocatie</label>
         <div id="edit-loc-dropdown" style="position:relative">
@@ -858,7 +848,6 @@
             <span class="loc-clear">✕</span>
           </div>
         </div>
-        <!-- Overige locatie -->
         <button class="btn btn-ghost btn-sm" style="margin-top:8px;align-self:flex-start" onclick="toggleEditOverige()" id="edit-btn-overige">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Overige locatie
@@ -882,7 +871,6 @@
         </div>
       </div>
 
-      <!-- Werk/Privé + Omweg -->
       <div class="toggle-group" style="flex-wrap:wrap;gap:10px">
         <div class="toggle-row" onclick="toggleEditSwitch('isWerk')">
           <span class="toggle-label" id="edit-lbl-werk-off" style="color:#94a3b8">Privé</span>
@@ -904,7 +892,6 @@
         </div>
       </div>
 
-      <!-- Opmerking -->
       <div class="field">
         <label>Opmerking <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(optioneel)</span></label>
         <input class="inp" type="text" id="edit-opmerking" placeholder="Bijv. klantbezoek, tankbeurt…"/>
@@ -966,37 +953,9 @@
   </button>
 </div>
 
-<nav class="bottomnav">
-  <button class="nav-btn active" data-page="ritten" onclick="showPage('ritten',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    Ritten
-  </button>
-  <button class="nav-btn" data-page="locaties" onclick="showPage('locaties',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-    Locaties
-  </button>
-  <button class="nav-btn" data-page="voertuig" onclick="showPage('voertuig',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
-    Voertuig
-  </button>
-  <button class="nav-btn" data-page="overzicht" onclick="showPage('overzicht',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-    Overzicht
-  </button>
-  <button class="nav-btn" data-page="verbruik" onclick="showPage('verbruik',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
-    Verbruik
-  </button>
-  <button class="nav-btn" data-page="instellingen" onclick="showPage('instellingen',this)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    Instellingen
-  </button>
-</nav>
-
 <!-- VERBRUIK PAGE -->
 <div class="page" id="page-verbruik" style="padding-top:8px">
 
-  <!-- Stats row -->
   <div class="stats" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px">
     <div class="stat">
       <div class="stat-val" id="vb-gem-verbruik" style="color:var(--clr-accent)">–</div>
@@ -1012,13 +971,11 @@
     </div>
   </div>
 
-  <!-- Invoer -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-title" id="vb-form-title">Tankbeurt / Lading toevoegen</div>
     <input type="hidden" id="vb-edit-id"/>
     <div class="form-grid" style="gap:14px">
 
-      <!-- Type -->
       <div class="field">
         <label>Type</label>
         <div style="display:flex;gap:8px">
@@ -1034,11 +991,12 @@
           <input class="inp" type="date" id="vb-datum"/>
         </div>
         <div class="field">
-          <label>Kilometerstand</label>
+          <label>Kilometerstand <span style="color:#475569;font-weight:400;text-transform:none;font-size:10px">(optioneel)</span></label>
           <div class="inp-wrap">
             <input class="inp" type="number" id="vb-km" inputmode="numeric" placeholder="bijv. 36500"/>
             <span class="inp-suffix">km</span>
           </div>
+          <div id="vb-km-hint" style="font-size:11px;color:#64748b;margin-top:3px"></div>
         </div>
       </div>
 
@@ -1089,14 +1047,12 @@
     </div>
   </div>
 
-  <!-- Grafiek -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-title">Verbruik over tijd</div>
     <canvas id="vb-chart" style="width:100%;height:180px"></canvas>
     <div id="vb-chart-empty" style="display:none;text-align:center;color:#475569;font-size:13px;padding:20px 0">Nog geen gegevens</div>
   </div>
 
-  <!-- Lijst -->
   <div class="card">
     <div class="card-title">Historie</div>
     <div style="overflow-x:auto">
@@ -1118,6 +1074,34 @@
   </div>
 </div>
 
+<!-- BOTTOM NAV — Verbruik is nu de 2e tab -->
+<nav class="bottomnav">
+  <button class="nav-btn active" data-page="ritten" onclick="showPage('ritten',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    Ritten
+  </button>
+  <button class="nav-btn" data-page="verbruik" onclick="showPage('verbruik',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+    Verbruik
+  </button>
+  <button class="nav-btn" data-page="locaties" onclick="showPage('locaties',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    Locaties
+  </button>
+  <button class="nav-btn" data-page="voertuig" onclick="showPage('voertuig',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-4h10l2 4h1a2 2 0 012 2v6a2 2 0 01-2 2h-2m-5 1a2 2 0 100-4 2 2 0 000 4zm-6 0a2 2 0 100-4 2 2 0 000 4"/></svg>
+    Voertuig
+  </button>
+  <button class="nav-btn" data-page="overzicht" onclick="showPage('overzicht',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Overzicht
+  </button>
+  <button class="nav-btn" data-page="instellingen" onclick="showPage('instellingen',this)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Instellingen
+  </button>
+</nav>
+
 <div class="toast" id="toast"></div>
 
 <style>
@@ -1128,7 +1112,6 @@
   .theme-mode-btn{flex:1;padding:10px 8px;border-radius:8px;border:1.5px solid #334155;background:transparent;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;font-family:inherit}
   .theme-mode-btn.active{background:var(--clr-accent);color:var(--clr-surface);border-color:var(--clr-accent)}
   .vb-type-btn.active{background:var(--clr-accent)!important;color:var(--clr-surface)!important;border-color:var(--clr-accent)!important}
-  /* Licht thema overrides */
   [data-color-mode="light"] body{color:#0f172a}
   [data-color-mode="light"] .card{border-color:var(--clr-border,#cbd5e1)}
   [data-color-mode="light"] .inp{border-color:var(--clr-border,#cbd5e1);color:#0f172a}
@@ -1146,9 +1129,6 @@
 </style>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// DATA STORE (localStorage)
-// ═══════════════════════════════════════════════════════
 const DB = {
   get(k, def=null){ try{ const v=localStorage.getItem(k); return v!=null?JSON.parse(v):def; }catch{return def;} },
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
@@ -1160,7 +1140,6 @@ let ritten     = DB.get('km-ritten', []);
 let voertuigen = DB.get('km-voertuigen', []);
 let verbruiken = DB.get('km-verbruiken', []);
 
-// Migratie: oude 'naam'/'beginKm' settings omzetten naar voertuig
 if(!voertuigen.length && (settings.naam || settings.beginKm)){
   const migV = { id:Date.now(), merk:'', type:'', kenteken: settings.naam||'', beginKm: settings.beginKm||0, favoriet:1 };
   voertuigen.push(migV);
@@ -1171,11 +1150,7 @@ if(!voertuigen.length && (settings.naam || settings.beginKm)){
 function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); DB.set('km-voertuigen',voertuigen); DB.set('km-verbruiken',verbruiken); }
 function getActiefVoertuig(){ return voertuigen.find(v=>v.id===settings.actieveVoertuigId) || voertuigen[0] || null; }
 
-// ═══════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════
 function showPage(id, btn){
-  // Verberg alle pagina's (ook overzicht buiten app-div)
   document.querySelectorAll('.page').forEach(p=>{
     p.classList.remove('active');
     p.style.display='none';
@@ -1192,9 +1167,6 @@ function showPage(id, btn){
   if(id==='verbruik')  loadVerbruik();
 }
 
-// ═══════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════
 let toastTimer;
 function toast(msg){ 
   const t=document.getElementById('toast');
@@ -1203,9 +1175,6 @@ function toast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-// ═══════════════════════════════════════════════════════
-// VOERTUIG
-// ═══════════════════════════════════════════════════════
 function loadVoertuig(){
   document.getElementById('vt-woonwerk').value = settings.woonWerkKm||0;
   document.getElementById('vt-werkwoon').value = settings.werkWoonKm||0;
@@ -1347,9 +1316,6 @@ function updateTopbar(){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// LOCATIES
-// ═══════════════════════════════════════════════════════
 let nomTimer;
 function nomSearch(){
   const q=document.getElementById('nom-input').value.trim();
@@ -1490,9 +1456,6 @@ function renderLocaties(){
     </div>`).join('');
 }
 
-// ═══════════════════════════════════════════════════════
-// RITTEN – state
-// ═══════════════════════════════════════════════════════
 let ritState = { isWerk:true, isOmweg:false, omwegRichting:'woonwerk', selLocId:null };
 
 function setRichting(r){
@@ -1514,10 +1477,8 @@ function toggleSwitch(key){
     document.getElementById('lbl-werk-off').style.setProperty('color',!isW?'#f87171':'#94a3b8');
     document.getElementById('lbl-werk-on').style.color=isW?'#f59e0b':'#94a3b8';
     document.getElementById('lbl-werk-on').style.fontWeight=isW?'700':'500';
-    // Blokkeer omweg als privé actief is
     const omwegRow = document.getElementById('track-isOmweg').closest('.toggle-row');
     if(!isW){
-      // Privé aan: zet omweg uit en blokkeer
       ritState.isOmweg = false;
       document.getElementById('track-isOmweg').className='toggle-track';
       document.getElementById('lbl-omweg-on').style.color='#64748b';
@@ -1570,16 +1531,12 @@ function updatePreview(){
   document.getElementById('prev-priv').textContent=fmtPriv(priv);
 }
 
-// Normaliseer logTijd naar sorteerbaar ISO-formaat: '2026-01-06T08:00'
 function normLogTijd(r){
   const lt = r.logTijd;
   if(!lt) return r.datum + 'T00:00';
-  // Nieuw formaat: '2026-01-06T08:00' → direct bruikbaar
   if(/^\d{4}-\d{2}-\d{2}T/.test(lt)) return lt.slice(0,19);
-  // Oud NL-formaat: '06-01-2026, 08:00' of '06-01-2026 08:00'
   const m = lt.match(/(\d{2})-(\d{2})-(\d{4})[\s,]+(\d{2}:\d{2}(:\d{2})?)/);
   if(m) return `${m[3]}-${m[2]}-${m[1]}T${m[4]}`;
-  // Fallback: alleen datum
   return r.datum + 'T00:00';
 }
 
@@ -1624,7 +1581,6 @@ function herbereken(gewijzigdLogTijd, voertuigId){
   });
 }
 
-// Location dropdown in rit form
 function sortedLocs(filter=''){
   return locaties
     .filter(l=>
@@ -1673,11 +1629,9 @@ function toggleOverigeLoc(){
     ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg> Overige locatie sluiten'
     : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
   if(open){
-    // Als overige locatie opengaat, wis de geselecteerde locatie
     clearLoc();
     ritState.selLocId = null;
   } else {
-    // Sluiten: wis de overige velden
     document.getElementById('overige-naam').value='';
     document.getElementById('overige-pc').value='';
     document.getElementById('overige-plaats').value='';
@@ -1760,7 +1714,6 @@ function addRit(){
   save();
   appendRitToSheet(ritten[ritten.length-1]);
 
-  // Reset form
   document.getElementById('rit-eindkm').value='';
   document.getElementById('rit-opmerking').value='';
   document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
@@ -1776,7 +1729,6 @@ function addRit(){
   document.getElementById('lbl-werk-on').style.color='#f59e0b';
   document.getElementById('lbl-werk-off').style.color='#94a3b8';
   document.getElementById('lbl-omweg-on').style.color='#64748b';
-  // Reset overige locatie
   document.getElementById('overige-naam').value='';
   document.getElementById('overige-pc').value='';
   document.getElementById('overige-plaats').value='';
@@ -1787,9 +1739,6 @@ function addRit(){
   toast('✓ Rit opgeslagen');
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER RITTEN
-// ═══════════════════════════════════════════════════════
 function renderRitten(){
   updateStats();
   buildYearFilter();
@@ -1813,7 +1762,6 @@ function renderDonut(used, yr){
   if(!max){ wrap.style.display='none'; return; }
   wrap.style.display='block';
 
-  // Pace berekening
   const now=new Date();
   const isHuidigJaar=yr===now.getFullYear();
   const daysInYear=((yr%4===0&&yr%100!==0)||yr%400===0)?366:365;
@@ -1821,30 +1769,22 @@ function renderDonut(used, yr){
     ? Math.floor((now - new Date(yr,0,1)) / 86400000)+1
     : daysInYear;
   const kmPerDag=max/daysInYear;
-  const verwacht=kmPerDag*dayOfYear;          // wat je op dit moment "had mogen rijden"
-  const pct=Math.min(1,used/max);             // voor de boog zelf
-  const verschil=used-verwacht;               // positief = te veel, negatief = ruimte over
+  const verwacht=kmPerDag*dayOfYear;
+  const pct=Math.min(1,used/max);
+  const verschil=used-verwacht;
   const over=used>max;
 
-  // Kleur op basis van pace, niet simpele drempel
   let color;
-  if(over){
-    color='#f87171'; // boven jaarlimiet
-  } else if(verschil>kmPerDag*7){
-    color='#f87171'; // meer dan een week voor op pace
-  } else if(verschil>kmPerDag*3){
-    color='#fb923c'; // 3–7 dagen voor op pace
-  } else if(verschil>0){
-    color='#f59e0b'; // licht voor op pace
-  } else {
-    color='#34d399'; // op of onder pace
-  }
+  if(over){ color='#f87171'; }
+  else if(verschil>kmPerDag*7){ color='#f87171'; }
+  else if(verschil>kmPerDag*3){ color='#fb923c'; }
+  else if(verschil>0){ color='#f59e0b'; }
+  else { color='#34d399'; }
 
   const resterend=Math.max(0,max-used);
   const dagResterend=isHuidigJaar ? Math.max(1, daysInYear-dayOfYear) : 0;
   const nogPerDag=dagResterend>0 ? resterend/dagResterend : 0;
 
-  // Texts
   document.getElementById('donut-jaar').textContent=yr;
   document.getElementById('donut-used').textContent=fmt(used)+' km';
   document.getElementById('donut-used').style.color=color;
@@ -1855,27 +1795,19 @@ function renderDonut(used, yr){
   document.getElementById('donut-pct').style.color=color;
 
   let statusTekst='';
-  if(over){
-    statusTekst=`⚠ ${fmt(Math.round(used-max))} km over jaarlimiet`;
-  } else if(isHuidigJaar){
-    if(verschil>0){
-      statusTekst=`↑ ${fmt(Math.round(verschil))} km boven dagtempo (${verschil>0?'+':''}${(verschil/kmPerDag).toFixed(1)} dagen)`;
-    } else {
-      statusTekst=`✓ ${fmt(Math.round(Math.abs(verschil)))} km onder dagtempo — nog ${fmt(Math.round(nogPerDag))} km/dag beschikbaar`;
-    }
-  } else {
-    statusTekst=`Nog ${fmt(resterend)} km over`;
-  }
+  if(over){ statusTekst=`⚠ ${fmt(Math.round(used-max))} km over jaarlimiet`; }
+  else if(isHuidigJaar){
+    if(verschil>0){ statusTekst=`↑ ${fmt(Math.round(verschil))} km boven dagtempo (${verschil>0?'+':''}${(verschil/kmPerDag).toFixed(1)} dagen)`; }
+    else { statusTekst=`✓ ${fmt(Math.round(Math.abs(verschil)))} km onder dagtempo — nog ${fmt(Math.round(nogPerDag))} km/dag beschikbaar`; }
+  } else { statusTekst=`Nog ${fmt(resterend)} km over`; }
   document.getElementById('donut-resterend').textContent=statusTekst;
   document.getElementById('donut-resterend').style.color=over||verschil>0?color:'#64748b';
 
-  // Pace indicator tekst onder de km
   const paceEl=document.getElementById('donut-pace');
   if(paceEl && isHuidigJaar){
     paceEl.textContent=`Budget: ${kmPerDag.toFixed(1)} km/dag · Verwacht t/m vandaag: ${fmt(Math.round(verwacht))} km`;
   }
 
-  // Canvas donut
   const canvas=document.getElementById('donut-canvas');
   const ctx=canvas.getContext('2d');
   const dpr=window.devicePixelRatio||1;
@@ -1887,7 +1819,6 @@ function renderDonut(used, yr){
   const startAngle=-Math.PI/2;
   const endAngle=startAngle+(2*Math.PI*Math.min(pct,1));
 
-  // Verwacht-arc (lichte achtergrond tot huidig dagtempo)
   if(isHuidigJaar && verwacht>0 && verwacht<max){
     const verwachtPct=Math.min(1,verwacht/max);
     const verwachtEnd=startAngle+(2*Math.PI*verwachtPct);
@@ -1899,14 +1830,12 @@ function renderDonut(used, yr){
     ctx.stroke();
   }
 
-  // Track
   ctx.beginPath();
   ctx.arc(cx,cy,r,0,2*Math.PI);
   ctx.strokeStyle='#1e293b';
   ctx.lineWidth=lw;
   ctx.stroke();
 
-  // Value arc
   if(pct>0){
     ctx.beginPath();
     ctx.arc(cx,cy,r,startAngle,endAngle);
@@ -1916,7 +1845,6 @@ function renderDonut(used, yr){
     ctx.stroke();
   }
 
-  // Center text
   ctx.fillStyle=color;
   ctx.font=`700 15px -apple-system,sans-serif`;
   ctx.textAlign='center';
@@ -1998,9 +1926,6 @@ function delRit(id){
   toast('Rit verwijderd');
 }
 
-// ═══════════════════════════════════════════════════════
-// EDIT MODAL
-// ═══════════════════════════════════════════════════════
 let editId = null;
 let editLocId = null;
 
@@ -2010,7 +1935,6 @@ function openEditModal(id){
   editId = id;
   editLocId = r.locatieId||null;
 
-  // Vul voertuig dropdown
   const vtSel = document.getElementById('edit-voertuig');
   vtSel.innerHTML='<option value="">— geen voertuig —</option>';
   voertuigen.forEach(v=>{
@@ -2026,7 +1950,6 @@ function openEditModal(id){
   document.getElementById('edit-eindkm').value   = r.eindKm;
   document.getElementById('edit-opmerking').value= r.opmerking||'';
 
-  // Locatie
   if(r.locatieId && locaties.find(l=>l.id===r.locatieId)){
     document.getElementById('edit-loc-search').style.display='none';
     document.getElementById('edit-loc-pill').style.display='block';
@@ -2051,7 +1974,6 @@ function openEditModal(id){
     document.getElementById('edit-btn-overige').innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Overige locatie';
   }
 
-  // Toggles
   const isW = r.isWerk;
   const isO = r.isOmweg;
   document.getElementById('edit-track-isWerk').className  = 'toggle-track'+(isW?' checked on-amber':'');
@@ -2217,10 +2139,6 @@ function saveEditRit(){
   toast('✓ Rit aangepast');
 }
 
-
-// ═══════════════════════════════════════════════════════
-// CSV EXPORT
-// ═══════════════════════════════════════════════════════
 function exportCSV(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
   const filtered=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
@@ -2243,20 +2161,16 @@ function exportCSV(){
   toast('✓ CSV gedownload');
 }
 
-// ═══════════════════════════════════════════════════════
-// CSV IMPORT
-// ═══════════════════════════════════════════════════════
 function importCSV(input){
   const file=input.files[0];
   if(!file){ return; }
   const reader=new FileReader();
   reader.onload=function(e){
     try{
-      const text=e.target.result.replace(/^\uFEFF/,''); // strip BOM
+      const text=e.target.result.replace(/^\uFEFF/,'');
       const lines=text.split('\n').map(l=>l.trim()).filter(l=>l);
       if(lines.length<2){ toast('⚠ CSV lijkt leeg'); return; }
 
-      // Parse header to find column indices
       const header=parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
       const col=name=>header.indexOf(name);
 
@@ -2300,7 +2214,6 @@ function importCSV(input){
 
       if(!imported.length){ toast('⚠ Geen geldige rijen gevonden'); return; }
 
-      // Merge: skip rows with same datum + eindKm that already exist
       const existing=new Set(ritten.map(r=>r.datum+'|'+r.eindKm));
       const nieuw=imported.filter(r=>!existing.has(r.datum+'|'+r.eindKm));
       const dupes=imported.length-nieuw.length;
@@ -2332,9 +2245,6 @@ function parseCSVRow(row){
   return result.map(s=>s.replace(/^"|"$/g,'').replace(/""/g,'"'));
 }
 
-// ═══════════════════════════════════════════════════════
-// GOOGLE OAUTH + SHEETS
-// ═══════════════════════════════════════════════════════
 let gTokenClient = null;
 let gAccessToken = null;
 let gTokenExpiry  = 0;
@@ -2351,8 +2261,6 @@ function googleLogin(){
     toast('⚠ Google script nog niet geladen — even wachten en opnieuw proberen');
     return;
   }
-
-  // Init token client
   gTokenClient = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: 'https://www.googleapis.com/auth/spreadsheets openid email profile',
@@ -2411,7 +2319,6 @@ function saveGoogleSettings(){
 async function ensureToken(){
   if(!gTokenClient) return false;
   if(gAccessToken && Date.now() < gTokenExpiry) return true;
-  // Token verlopen — stil vernieuwen
   return new Promise(resolve => {
     gTokenClient.callback = (resp) => {
       if(resp.error){ resolve(false); return; }
@@ -2444,7 +2351,6 @@ async function testSheetConnection(){
     const data = await r.json();
     badge.className = 'sheet-status ok';
     badge.textContent = '✓ Verbonden met "' + (data.properties?.title || 'sheet') + '"';
-    // Zorg voor koptekstrij
     await ensureSheetHeader();
   }catch(e){
     badge.className = 'sheet-status err';
@@ -2453,7 +2359,6 @@ async function testSheetConnection(){
 }
 
 async function ensureSheetHeader(){
-  // Lees rij 1 — als leeg, schrijf koptekst
   const sheetId = settings.googleSheetId;
   try{
     const r = await fetch(
@@ -2461,8 +2366,7 @@ async function ensureSheetHeader(){
       { headers:{ Authorization:'Bearer '+gAccessToken } }
     );
     const data = await r.json();
-    if(data.values && data.values[0] && data.values[0][0]) return; // header exists
-    // Schrijf header
+    if(data.values && data.values[0] && data.values[0][0]) return;
     await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:J1?valueInputOption=USER_ENTERED`,
       {
@@ -2484,16 +2388,8 @@ async function appendRitToSheet(rit){
     : rit.isWerk ? 'Werk' : 'Privé';
 
   const row = [
-    rit.datum,
-    rit.eindKm,
-    rit.locatieNaam,
-    rit.locatiePostcode,
-    rit.locatiePlaats,
-    soort,
-    rit.isOmweg ? 'Ja' : 'Nee',
-    rit.afgelegdKm,
-    rit.werkKm || 0,
-    rit.privKm  || 0,
+    rit.datum, rit.eindKm, rit.locatieNaam, rit.locatiePostcode, rit.locatiePlaats,
+    soort, rit.isOmweg ? 'Ja' : 'Nee', rit.afgelegdKm, rit.werkKm || 0, rit.privKm || 0,
   ];
 
   try{
@@ -2512,40 +2408,26 @@ async function appendRitToSheet(rit){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════
 function fmt(n){ return Number(n).toLocaleString('nl-NL'); }
 function fmtPriv(n){ return Number(n).toLocaleString('nl-NL',{minimumFractionDigits:1,maximumFractionDigits:1}); }
 function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════
-// THEME (App instellingen)
-// ═══════════════════════════════════════════════════════
 const ACCENT_PRESETS = [
-  {hex:'#f59e0b', label:'Amber'},
-  {hex:'#3b82f6', label:'Blauw'},
-  {hex:'#10b981', label:'Groen'},
-  {hex:'#ec4899', label:'Roze'},
-  {hex:'#8b5cf6', label:'Paars'},
-  {hex:'#ef4444', label:'Rood'},
-  {hex:'#06b6d4', label:'Cyan'},
-  {hex:'#f97316', label:'Oranje'},
+  {hex:'#f59e0b', label:'Amber'},{hex:'#3b82f6', label:'Blauw'},{hex:'#10b981', label:'Groen'},
+  {hex:'#ec4899', label:'Roze'},{hex:'#8b5cf6', label:'Paars'},{hex:'#ef4444', label:'Rood'},
+  {hex:'#06b6d4', label:'Cyan'},{hex:'#f97316', label:'Oranje'},
 ];
 const BG_PRESETS_DARK = [
-  {hex:'#0b1120', label:'Nacht'}, {hex:'#0f172a', label:'Donkerblauw'},
-  {hex:'#111827', label:'Graphite'}, {hex:'#1a0a2e', label:'Indigo'},
-  {hex:'#0a1a0f', label:'Bosgroen'}, {hex:'#1a0a0a', label:'Bordeaux'},
-  {hex:'#18181b', label:'Zink'}, {hex:'#0d0d0d', label:'Zwart'},
+  {hex:'#0b1120', label:'Nacht'},{hex:'#0f172a', label:'Donkerblauw'},
+  {hex:'#111827', label:'Graphite'},{hex:'#1a0a2e', label:'Indigo'},
+  {hex:'#0a1a0f', label:'Bosgroen'},{hex:'#1a0a0a', label:'Bordeaux'},
+  {hex:'#18181b', label:'Zink'},{hex:'#0d0d0d', label:'Zwart'},
 ];
 const BG_PRESETS_LIGHT = [
-  {hex:'#f8fafc', label:'Wit'}, {hex:'#f1f5f9', label:'Slate'},
-  {hex:'#f0f9ff', label:'Lichtblauw'}, {hex:'#f0fdf4', label:'Lichtgroen'},
-  {hex:'#fdf4ff', label:'Lichtpaars'}, {hex:'#fff7ed', label:'Lichtoranje'},
-  {hex:'#fce7f3', label:'Lichtroze'}, {hex:'#fef9c3', label:'Lichtgeel'},
+  {hex:'#f8fafc', label:'Wit'},{hex:'#f1f5f9', label:'Slate'},
+  {hex:'#f0f9ff', label:'Lichtblauw'},{hex:'#f0fdf4', label:'Lichtgroen'},
+  {hex:'#fdf4ff', label:'Lichtpaars'},{hex:'#fff7ed', label:'Lichtoranje'},
+  {hex:'#fce7f3', label:'Lichtroze'},{hex:'#fef9c3', label:'Lichtgeel'},
 ];
 const VT_KLEUR_PRESETS = [
   '#ef4444','#f97316','#eab308','#22c55e','#06b6d4',
@@ -2555,7 +2437,6 @@ const VT_KLEUR_PRESETS = [
 let themeSettings = DB.get('km-theme', { accent:'#f59e0b', bg:'#0b1120', mode:'dark' });
 if(!themeSettings.mode) themeSettings.mode = 'dark';
 
-// Voertuigkleur state (form)
 let selectedVtKleur = '#f59e0b';
 
 function isDarkMode(){
@@ -2598,7 +2479,6 @@ function applyTheme(){
   }
   document.documentElement.dataset.colorMode = dark ? 'dark' : 'light';
 
-  // Toon/verberg kaarten op basis van modus
   const isVoertuig = themeSettings.mode === 'voertuig';
   const isAuto     = themeSettings.mode === 'auto';
   const acCard = document.getElementById('accent-card');
@@ -2621,8 +2501,6 @@ function darken(hex, pct){
 }
 
 function setColorMode(mode){
-  if(mode==='dark'  && !themeSettings.bg)      themeSettings.bg = '#0b1120';
-  if(mode==='light' && !themeSettings.bgLight) themeSettings.bgLight = '#f8fafc';
   if(mode==='dark')  { themeSettings.bg = themeSettings.bgDark  || '#0b1120'; }
   if(mode==='light') { themeSettings.bg = themeSettings.bgLight || '#f8fafc'; }
   themeSettings.mode = mode;
@@ -2679,12 +2557,10 @@ function renderSwatches(){
   renderVtKleurSwatches();
 }
 
-// Luister naar systeem voorkeur
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
   if(themeSettings.mode==='auto' || themeSettings.mode==='voertuig') applyTheme();
 });
 
-// ─── Voertuigkleur (form) ───
 function setVtKleur(hex){
   selectedVtKleur = hex;
   renderVtKleurSwatches();
@@ -2707,9 +2583,6 @@ function loadKleurVoertuig(v){
   renderVtKleurSwatches();
 }
 
-// ═══════════════════════════════════════════════════════
-// BRANDSTOF
-// ═══════════════════════════════════════════════════════
 let selectedBrandstof = [];
 
 function toggleBrandstof(type){
@@ -2730,20 +2603,61 @@ function loadBrandstofVoertuig(v){
   renderBrandstofBtns();
 }
 
-// ═══════════════════════════════════════════════════════
-// VERBRUIK
-// ═══════════════════════════════════════════════════════
 let vbState = { type:'brandstof', vol:true };
+
+// Geeft de relevante brandstof-types terug op basis van actief voertuig
+function getVbTypesVoorVoertuig(){
+  const av = getActiefVoertuig();
+  const bs = av?.brandstof || [];
+  if(!bs.length) return ['brandstof','elektrisch','overig']; // geen instelling → alles tonen
+  const types = [];
+  const heeftFuel = bs.some(b=>['benzine','diesel','lpg'].includes(b));
+  const heeftElec = bs.includes('elektrisch');
+  if(heeftFuel)  types.push('brandstof');
+  if(heeftElec)  types.push('elektrisch');
+  types.push('overig'); // altijd beschikbaar
+  return types;
+}
 
 function setVbType(type){
   vbState.type = type;
   document.querySelectorAll('.vb-type-btn').forEach(b=>b.classList.toggle('active', b.dataset.type===type));
-  const isElec = type==='elektrisch';
+  const isElec   = type==='elektrisch';
   const isOverig = type==='overig';
-  document.getElementById('vb-hoeveelheid-label').textContent = isElec ? 'Hoeveelheid' : isOverig ? 'Hoeveelheid' : 'Liters';
-  document.getElementById('vb-hoeveelheid-suffix').textContent = isElec ? 'kWh' : isOverig ? '' : 'L';
+  document.getElementById('vb-hoeveelheid-label').textContent   = isElec ? 'Hoeveelheid (kWh)' : isOverig ? 'Hoeveelheid' : 'Liters';
+  document.getElementById('vb-hoeveelheid-suffix').textContent  = isElec ? 'kWh' : isOverig ? '' : 'L';
   document.getElementById('vb-hoeveelheid-field').style.display = isOverig ? 'none' : 'flex';
-  document.getElementById('vb-vol-field').style.display = isOverig || isElec ? 'none' : 'flex';
+  document.getElementById('vb-vol-field').style.display         = isOverig || isElec ? 'none' : 'flex';
+}
+
+// Past de zichtbare type-knoppen aan op het actieve voertuig
+function updateVbTypeBtns(){
+  const toegestaan = getVbTypesVoorVoertuig();
+  document.querySelectorAll('.vb-type-btn').forEach(b=>{
+    b.style.display = toegestaan.includes(b.dataset.type) ? 'inline-flex' : 'none';
+  });
+  // Als huidig type niet meer beschikbaar is, switch naar eerste beschikbare
+  if(!toegestaan.includes(vbState.type)){
+    setVbType(toegestaan[0]);
+  }
+}
+
+// Geeft de laatste bekende km-stand van het actieve voertuig terug
+function getLaatsteKmStand(){
+  const av = getActiefVoertuig();
+  if(!av) return null;
+  // Zoek in ritten
+  const vtRitten = ritten
+    .filter(r=>r.voertuigId===av.id && r.eindKm)
+    .sort((a,b)=>normLogTijd(b).localeCompare(normLogTijd(a)));
+  if(vtRitten.length) return vtRitten[0].eindKm;
+  // Zoek in verbruiken
+  const vtVb = verbruiken
+    .filter(v=>v.voertuigId===av.id && v.km)
+    .sort((a,b)=>b.datum.localeCompare(a.datum));
+  if(vtVb.length) return vtVb[0].km;
+  // Beginstand
+  return av.beginKm || null;
 }
 
 function toggleVbVol(){
@@ -2756,13 +2670,19 @@ function toggleVbVol(){
 
 function saveVerbruik(){
   const datum      = document.getElementById('vb-datum').value;
-  const km         = parseFloat(document.getElementById('vb-km').value)||0;
+  const kmRaw      = document.getElementById('vb-km').value;
+  // Als km leeg is, gebruik de laatste bekende km-stand van het voertuig
+  let km = parseFloat(kmRaw)||0;
+  if(!km){
+    const autokm = getLaatsteKmStand();
+    if(autokm){ km = autokm; }
+  }
   const hoeveelheid= parseFloat(document.getElementById('vb-hoeveelheid').value)||0;
   const prijs      = parseFloat(document.getElementById('vb-prijs').value)||0;
   const locatie    = document.getElementById('vb-locatie').value.trim();
   const opmerking  = document.getElementById('vb-opmerking').value.trim();
   if(!datum){ toast('⚠ Vul een datum in'); return; }
-  if(!km)   { toast('⚠ Vul de kilometerstand in'); return; }
+  if(!km)   { toast('⚠ Vul de kilometerstand in (geen eerdere stand beschikbaar)'); return; }
 
   const av = getActiefVoertuig();
   const editId = document.getElementById('vb-edit-id').value;
@@ -2811,6 +2731,20 @@ function editVerbruik(id){
   document.getElementById('vb-form-title').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+function updateVbKmHint(){
+  const kmEl  = document.getElementById('vb-km');
+  const hint  = document.getElementById('vb-km-hint');
+  if(!kmEl || !hint) return;
+  const lk = getLaatsteKmStand();
+  if(lk){
+    kmEl.placeholder = fmt(lk);
+    hint.textContent = '↩ Leeg laten = laatste stand (' + fmt(lk) + ' km) wordt gebruikt';
+  } else {
+    kmEl.placeholder = 'bijv. 36500';
+    hint.textContent = '';
+  }
+}
+
 function cancelEditVerbruik(){
   document.getElementById('vb-edit-id').value='';
   document.getElementById('vb-datum').value='';
@@ -2820,7 +2754,10 @@ function cancelEditVerbruik(){
   document.getElementById('vb-locatie').value='';
   document.getElementById('vb-opmerking').value='';
   vbState.vol=true;
-  setVbType('brandstof');
+  // Reset naar juiste default type op basis van actief voertuig
+  updateVbTypeBtns();
+  const defaultType = getVbTypesVoorVoertuig()[0];
+  setVbType(defaultType);
   const track=document.getElementById('vb-vol-track');
   const lbl  =document.getElementById('vb-vol-label');
   track.className='toggle-track checked on-amber';
@@ -2828,6 +2765,7 @@ function cancelEditVerbruik(){
   document.getElementById('vb-form-title').textContent='Tankbeurt / Lading toevoegen';
   document.getElementById('vb-save-label').textContent='Opslaan';
   document.getElementById('vb-cancel-btn').style.display='none';
+  updateVbKmHint();
 }
 
 function delVerbruik(id){
@@ -2840,35 +2778,35 @@ function loadVerbruik(){
   const now=new Date();
   const dEl=document.getElementById('vb-datum');
   if(!dEl.value) dEl.value=now.toISOString().split('T')[0];
-  setVbType(vbState.type);
+
+  // Pas type-knoppen aan op actief voertuig
+  updateVbTypeBtns();
+
+  // Auto-vul km-stand hint als het veld leeg is
+  updateVbKmHint();
+
   renderVerbruik();
 }
 
 function renderVerbruik(){
   const av = getActiefVoertuig();
   const vtId = av?.id||null;
-  // Filter op actief voertuig
   const vbs = [...verbruiken]
     .filter(v=>v.voertuigId===vtId)
     .sort((a,b)=>b.datum.localeCompare(a.datum));
 
-  // Stats
   const totalKosten = vbs.reduce((s,v)=>s+(v.prijs||0),0);
-  // Verbruik berekenen: alleen vol-tankbeurten in volgorde
   const volBeurten = [...vbs].filter(v=>v.vol&&v.hoeveelheid&&v.type!=='overig').sort((a,b)=>a.datum.localeCompare(b.datum));
   let gemVerbruik = null;
   if(volBeurten.length>=2){
-    // Bereken over het gehele bereik
     const totLiter = volBeurten.slice(1).reduce((s,v)=>s+(v.hoeveelheid||0),0);
     const kmRange  = volBeurten[volBeurten.length-1].km - volBeurten[0].km;
     if(kmRange>0) gemVerbruik = totLiter/kmRange*100;
   }
-  // km-stand ritten voor verbruik-per-km berekening
   const vtRitten = ritten.filter(r=>r.voertuigId===vtId);
   const totKm = vtRitten.reduce((s,r)=>s+(r.afgelegdKm||0),0);
   const kostPerKm = totKm>0 ? totalKosten/totKm : null;
 
-  // Bepaal label: liter of kWh
   const hasElec = vbs.some(v=>v.type==='elektrisch');
   const hasFuel = vbs.some(v=>v.type==='brandstof');
   const eenheid = hasElec&&!hasFuel ? 'kWh' : 'L';
@@ -2879,7 +2817,6 @@ function renderVerbruik(){
   document.getElementById('vb-totaal-kosten').textContent = totalKosten>0 ? '€ '+totalKosten.toFixed(2) : '€ –';
   document.getElementById('vb-kosten-per-km').textContent = kostPerKm!=null ? '€ '+kostPerKm.toFixed(3) : '€ –';
 
-  // Tabel
   const tbody=document.getElementById('vb-tbody');
   const tabel=document.getElementById('vb-table');
   const empty=document.getElementById('vb-empty');
@@ -2887,7 +2824,6 @@ function renderVerbruik(){
   else {
     tabel.style.display=''; empty.style.display='none';
     tbody.innerHTML = vbs.map(v=>{
-      // Verbruik per entry (tov vorige vol-beurt)
       let verbruikStr='–';
       if(v.vol&&v.hoeveelheid&&v.type!=='overig'){
         const vorige=volBeurten.filter(b=>b.datum<v.datum&&b.km<v.km).pop();
@@ -2926,7 +2862,6 @@ function renderVerbruikChart(vbs){
   if(volBeurten.length<2){ canvas.style.display='none'; empty.style.display='block'; return; }
   canvas.style.display='block'; empty.style.display='none';
 
-  // Compute per-segment consumption
   const pts=[];
   for(let i=1;i<volBeurten.length;i++){
     const d=volBeurten[i].km-volBeurten[i-1].km;
@@ -2948,7 +2883,6 @@ function renderVerbruikChart(vbs){
   const vals=pts.map(p=>p.val);
   const minV=Math.max(0,Math.min(...vals)-1), maxV=Math.max(...vals)+1;
 
-  // Gridlines
   ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+gH*(1-i/4);
@@ -2957,7 +2891,6 @@ function renderVerbruikChart(vbs){
     ctx.fillText((minV+(maxV-minV)*i/4).toFixed(1), pad.l-6, y+3);
   }
 
-  // Gradient fill
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--clr-accent').trim()||'#f59e0b';
   const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+gH);
   grad.addColorStop(0,accent+'66'); grad.addColorStop(1,accent+'00');
@@ -2970,7 +2903,6 @@ function renderVerbruikChart(vbs){
   ctx.lineTo(pad.l+gW,pad.t+gH); ctx.lineTo(pad.l,pad.t+gH); ctx.closePath();
   ctx.fillStyle=grad; ctx.fill();
 
-  // Line
   ctx.strokeStyle=accent; ctx.lineWidth=2; ctx.lineJoin='round';
   ctx.beginPath();
   pts.forEach((p,i)=>{
@@ -2980,7 +2912,6 @@ function renderVerbruikChart(vbs){
   });
   ctx.stroke();
 
-  // Dots
   pts.forEach((p,i)=>{
     const x=pad.l+i/(pts.length-1)*gW;
     const y=pad.t+gH*(1-(p.val-minV)/(maxV-minV));
@@ -2988,37 +2919,27 @@ function renderVerbruikChart(vbs){
     ctx.fillStyle=accent; ctx.fill();
   });
 
-  // X-labels (first/last)
   ctx.fillStyle='#475569'; ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='center';
   ctx.fillText(pts[0].datum.slice(5),pad.l,H-6);
   if(pts.length>1) ctx.fillText(pts[pts.length-1].datum.slice(5),pad.l+gW,H-6);
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  // Thema toepassen
   applyTheme();
   renderSwatches();
 
-  // Set today's date + current time
   const now = new Date();
   document.getElementById('rit-datum').value = now.toISOString().split('T')[0];
   document.getElementById('rit-tijd').value  = now.toTimeString().slice(0,8);
-  // Zorg dat startpagina zichtbaar is
   document.getElementById('page-ritten').style.display='block';
-  // Init
   updateTopbar();
   renderRitten();
   renderLocaties();
   loadVoertuig();
-  // Km input live preview
   document.getElementById('rit-eindkm').addEventListener('input', updatePreview);
 });
 
-// ═══════════════════════════════════════════════════════
-// OVERZICHT
-// ═══════════════════════════════════════════════════════
 function loadOverzicht(){
-  // Vul voertuig dropdown
   const sel = document.getElementById('ov-voertuig');
   const cur = sel.value;
   sel.innerHTML='<option value="">Alle voertuigen</option>';
@@ -3029,7 +2950,6 @@ function loadOverzicht(){
     sel.appendChild(opt);
   });
   sel.value=cur;
-  // Snelknoppen opbouwen
   buildOvSnelknoppen();
   renderOverzicht();
 }
@@ -3038,7 +2958,6 @@ function buildOvSnelknoppen(){
   const wrap = document.getElementById('ov-snelknoppen');
   const now  = new Date();
   const yr   = now.getFullYear();
-  // Haal alle jaren uit de ritten
   const jaren = [...new Set(ritten.map(r=>new Date(r.datum).getFullYear()))].sort((a,b)=>b-a);
   const knoppen = [];
   jaren.forEach(j=>{
@@ -3048,7 +2967,6 @@ function buildOvSnelknoppen(){
     knoppen.push({ label: `Q3 ${j}`, van: `${j}-07-01`, tot: `${j}-09-30` });
     knoppen.push({ label: `Q4 ${j}`, van: `${j}-10-01`, tot: `${j}-12-31` });
   });
-  // Beperk tot huidig en vorig jaar als er veel jaren zijn
   const visible = jaren.length > 2
     ? knoppen.filter(k=>k.label.endsWith(String(yr))||k.label.endsWith(String(yr-1)))
     : knoppen;
