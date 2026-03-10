@@ -446,7 +446,7 @@
         <table id="rit-table">
           <thead>
             <tr>
-              <th>Datum</th><th>Eindstand</th><th>Bestemming</th><th>Soort</th>
+              <th>Datum</th><th>Voertuig</th><th>Eindstand</th><th>Bestemming</th><th>Soort</th>
               <th class="text-right">Afgelegd</th><th class="text-right">Werk</th><th class="text-right">Privé</th><th></th>
             </tr>
           </thead>
@@ -522,23 +522,58 @@
   <div class="page" id="page-voertuig">
     <div style="margin-bottom:24px">
       <h2 style="font-size:20px;font-weight:700;color:#f1f5f9">Voertuig & Instellingen</h2>
-      <p style="color:#64748b;font-size:13px;margin-top:5px">Stel uw voertuig en standaardinstellingen in.</p>
+      <p style="color:#64748b;font-size:13px;margin-top:5px">Beheer uw voertuigen en standaardinstellingen.</p>
     </div>
 
-    <div class="card">
-      <div class="form-grid" style="gap:16px">
-        <div class="field">
-          <label>Voertuignaam / kenteken</label>
-          <input class="inp" type="text" id="vt-naam" placeholder="bijv. Toyota Yaris · AB-123-C"/>
-        </div>
-        <div class="field">
-          <label>Beginstand kilometerteller</label>
-          <div class="inp-wrap">
-            <input class="inp" type="number" id="vt-beginkm" placeholder="0" inputmode="numeric"/>
-            <span class="inp-suffix">km</span>
+    <!-- Voertuigen lijst -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Mijn voertuigen</div>
+      <div id="vt-list"></div>
+      <div class="empty" id="vt-empty" style="display:none">Nog geen voertuigen toegevoegd.</div>
+    </div>
+
+    <!-- Voertuig toevoegen -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" id="vt-form-title">Voertuig toevoegen</div>
+      <div class="form-grid" style="gap:14px">
+        <input type="hidden" id="vt-edit-id"/>
+        <div class="form-grid form-grid-2" style="gap:10px">
+          <div class="field">
+            <label>Merk</label>
+            <input class="inp" type="text" id="vt-merk" placeholder="bijv. Toyota"/>
+          </div>
+          <div class="field">
+            <label>Type</label>
+            <input class="inp" type="text" id="vt-type" placeholder="bijv. Yaris"/>
           </div>
         </div>
-        <div class="divider"></div>
+        <div class="form-grid form-grid-2" style="gap:10px">
+          <div class="field">
+            <label>Kenteken</label>
+            <input class="inp" type="text" id="vt-kenteken" placeholder="AB-123-C" style="text-transform:uppercase"/>
+          </div>
+          <div class="field">
+            <label>Beginstand km</label>
+            <div class="inp-wrap">
+              <input class="inp" type="number" id="vt-beginkm" placeholder="0" inputmode="numeric"/>
+              <span class="inp-suffix">km</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="saveVoertuig()" style="flex:1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="vt-save-label">Voertuig opslaan</span>
+          </button>
+          <button class="btn btn-ghost" id="vt-cancel-btn" onclick="cancelEditVoertuig()" style="display:none">Annuleren</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instellingen -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Rijinstellingen</div>
+      <div class="form-grid" style="gap:16px">
         <div class="field">
           <label>Woon-werk afstand (enkele reis)</label>
           <p style="font-size:12px;color:#64748b;margin-bottom:8px">Omweg van huis naar werk: woon-werk km → Werk, overige km → Privé.</p>
@@ -703,11 +738,21 @@ const DB = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} }
 };
 
-let settings = DB.get('km-settings', { naam:'', beginKm:0, woonWerkKm:0 });
+let settings  = DB.get('km-settings', { woonWerkKm:0, werkWoonKm:0, maxPrivKm:0, actieveVoertuigId:null });
 let locaties  = DB.get('km-locaties', []);
 let ritten    = DB.get('km-ritten', []);
+let voertuigen= DB.get('km-voertuigen', []);
 
-function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); }
+// Migratie: oude 'naam'/'beginKm' settings omzetten naar voertuig
+if(!voertuigen.length && (settings.naam || settings.beginKm)){
+  const migV = { id:Date.now(), merk:'', type:'', kenteken: settings.naam||'', beginKm: settings.beginKm||0, favoriet:1 };
+  voertuigen.push(migV);
+  settings.actieveVoertuigId = migV.id;
+  DB.set('km-voertuigen', voertuigen);
+}
+
+function save(){ DB.set('km-settings',settings); DB.set('km-locaties',locaties); DB.set('km-ritten',ritten); DB.set('km-voertuigen',voertuigen); }
+function getActiefVoertuig(){ return voertuigen.find(v=>v.id===settings.actieveVoertuigId) || voertuigen[0] || null; }
 
 // ═══════════════════════════════════════════════════════
 // NAVIGATION
@@ -738,29 +783,129 @@ function toast(msg){
 // VOERTUIG
 // ═══════════════════════════════════════════════════════
 function loadVoertuig(){
-  document.getElementById('vt-naam').value = settings.naam||'';
-  document.getElementById('vt-beginkm').value = settings.beginKm||0;
   document.getElementById('vt-woonwerk').value = settings.woonWerkKm||0;
   document.getElementById('vt-werkwoon').value = settings.werkWoonKm||0;
-  document.getElementById('vt-maxpriv').value = settings.maxPrivKm||0;
+  document.getElementById('vt-maxpriv').value  = settings.maxPrivKm||0;
+  renderVoertuigen();
   updateGoogleSettingsPanel();
 }
+
+function renderVoertuigen(){
+  const list  = document.getElementById('vt-list');
+  const empty = document.getElementById('vt-empty');
+  if(!voertuigen.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const actief = settings.actieveVoertuigId;
+  list.innerHTML = voertuigen.map(v=>{
+    const isFav = v.id === actief;
+    const label = [v.merk, v.type].filter(Boolean).join(' ') || v.kenteken || 'Naamloos';
+    return `<div class="loc-item" style="${isFav?'border-left:3px solid #f59e0b;padding-left:10px':''}">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <button class="del-btn" ontouchend="setActiefVoertuig(${v.id})" onclick="setActiefVoertuig(${v.id})" title="Actief voertuig" style="color:${isFav?'#f59e0b':'#334155'};flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav?'#f59e0b':'none'}" stroke="${isFav?'#f59e0b':'#475569'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:600;color:${isFav?'#f59e0b':'#f1f5f9'}">${esc(label)}</div>
+          <div class="mono" style="font-size:11px;color:#475569">${v.kenteken?esc(v.kenteken.toUpperCase()):''}${v.kenteken&&v.beginKm?' · ':''}${v.beginKm?fmt(v.beginKm)+' km start':''}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="del-btn" ontouchend="editVoertuig(${v.id})" onclick="editVoertuig(${v.id})" title="Aanpassen" style="color:#475569">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="del-btn" ontouchend="delVoertuig(${v.id})" onclick="delVoertuig(${v.id})" title="Verwijderen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setActiefVoertuig(id){
+  settings.actieveVoertuigId = id;
+  save();
+  renderVoertuigen();
+  updateTopbar();
+}
+
+function saveVoertuig(){
+  const merk    = document.getElementById('vt-merk').value.trim();
+  const type    = document.getElementById('vt-type').value.trim();
+  const kenteken= document.getElementById('vt-kenteken').value.trim().toUpperCase();
+  const beginKm = parseFloat(document.getElementById('vt-beginkm').value)||0;
+  if(!merk && !type && !kenteken){ toast('⚠ Vul minimaal merk, type of kenteken in'); return; }
+  const editId = document.getElementById('vt-edit-id').value;
+  if(editId){
+    const v = voertuigen.find(v=>v.id===parseInt(editId));
+    if(v){ v.merk=merk; v.type=type; v.kenteken=kenteken; v.beginKm=beginKm; }
+    toast('✓ Voertuig bijgewerkt');
+  } else {
+    const v = { id:Date.now(), merk, type, kenteken, beginKm };
+    voertuigen.push(v);
+    if(voertuigen.length===1){ settings.actieveVoertuigId=v.id; }
+    toast('✓ Voertuig opgeslagen');
+  }
+  save();
+  cancelEditVoertuig();
+  renderVoertuigen();
+  updateTopbar();
+}
+
+function editVoertuig(id){
+  const v = voertuigen.find(v=>v.id===id);
+  if(!v) return;
+  document.getElementById('vt-edit-id').value = v.id;
+  document.getElementById('vt-merk').value     = v.merk||'';
+  document.getElementById('vt-type').value     = v.type||'';
+  document.getElementById('vt-kenteken').value = v.kenteken||'';
+  document.getElementById('vt-beginkm').value  = v.beginKm||0;
+  document.getElementById('vt-form-title').textContent = 'Voertuig aanpassen';
+  document.getElementById('vt-save-label').textContent = 'Wijzigingen opslaan';
+  document.getElementById('vt-cancel-btn').style.display = 'inline-flex';
+  document.getElementById('vt-form-title').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function cancelEditVoertuig(){
+  document.getElementById('vt-edit-id').value  = '';
+  document.getElementById('vt-merk').value     = '';
+  document.getElementById('vt-type').value     = '';
+  document.getElementById('vt-kenteken').value = '';
+  document.getElementById('vt-beginkm').value  = 0;
+  document.getElementById('vt-form-title').textContent = 'Voertuig toevoegen';
+  document.getElementById('vt-save-label').textContent = 'Voertuig opslaan';
+  document.getElementById('vt-cancel-btn').style.display = 'none';
+}
+
+function delVoertuig(id){
+  if(voertuigen.length===1){ toast('⚠ Minimaal één voertuig vereist'); return; }
+  voertuigen = voertuigen.filter(v=>v.id!==id);
+  if(settings.actieveVoertuigId===id) settings.actieveVoertuigId = voertuigen[0]?.id||null;
+  save();
+  renderVoertuigen();
+  updateTopbar();
+  toast('Voertuig verwijderd');
+}
+
 function saveSettings(){
-  settings.naam = document.getElementById('vt-naam').value.trim();
-  settings.beginKm = parseFloat(document.getElementById('vt-beginkm').value)||0;
   settings.woonWerkKm = parseFloat(document.getElementById('vt-woonwerk').value)||0;
   settings.werkWoonKm = parseFloat(document.getElementById('vt-werkwoon').value)||0;
-  settings.maxPrivKm = parseFloat(document.getElementById('vt-maxpriv').value)||0;
+  settings.maxPrivKm  = parseFloat(document.getElementById('vt-maxpriv').value)||0;
   save();
-  updateTopbar();
   renderRitten();
   toast('✓ Instellingen opgeslagen');
   const btn=document.getElementById('btn-save-vt');
-  btn.textContent='✓ Opgeslagen!'; 
+  btn.textContent='✓ Opgeslagen!';
   setTimeout(()=>btn.textContent='Opslaan',2000);
 }
+
 function updateTopbar(){
-  document.getElementById('topbar-sub').textContent = settings.naam ? '· '+settings.naam : '';
+  const v = getActiefVoertuig();
+  if(v){
+    const label = [v.merk, v.type].filter(Boolean).join(' ') || v.kenteken || '';
+    document.getElementById('topbar-sub').textContent = label ? '· '+label : '';
+  } else {
+    document.getElementById('topbar-sub').textContent = '';
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -987,7 +1132,9 @@ function updatePreview(){
 }
 
 function getPrevKm(){
-  return ritten.length ? ritten[ritten.length-1].eindKm : (parseFloat(settings.beginKm)||0);
+  const v = getActiefVoertuig();
+  const beginKm = v ? (v.beginKm||0) : (parseFloat(settings.beginKm)||0);
+  return ritten.length ? ritten[ritten.length-1].eindKm : beginKm;
 }
 
 // Location dropdown in rit form
@@ -1106,8 +1253,12 @@ function addRit(){
 
   const loc = overige || locaties.find(l=>l.id===ritState.selLocId);
   const opmerking = document.getElementById('rit-opmerking').value.trim();
+  const av = getActiefVoertuig();
   ritten.push({
     id:Date.now(), datum, eindKm:huidig,
+    voertuigId: av?.id||null,
+    voertuigLabel: av ? ([av.merk,av.type].filter(Boolean).join(' ')||av.kenteken||'') : '',
+    voertuigKenteken: av?.kenteken||'',
     locatieId: loc.id||null, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
     isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
     afgelegdKm:afgelegd, werkKm, privKm, opmerking,
@@ -1307,6 +1458,10 @@ function renderTabel(){
   tbody.innerHTML=filtered.map((r,i)=>`
     <tr style="${i%2?'background:rgba(15,23,42,.35)':''}">
       <td class="mono" style="color:#94a3b8;white-space:nowrap">${r.datum}</td>
+      <td style="white-space:nowrap">
+        ${r.voertuigLabel?`<div style="font-size:11px;color:#94a3b8;font-weight:500">${esc(r.voertuigLabel)}</div>`:''}
+        ${r.voertuigKenteken?`<div class="mono" style="font-size:10px;color:#475569">${esc(r.voertuigKenteken)}</div>`:'<div style="font-size:11px;color:#334155">—</div>'}
+      </td>
       <td class="mono" style="color:#f1f5f9">${fmt(r.eindKm)}</td>
       <td>
         <div style="font-size:13px;color:#f1f5f9;font-weight:500">${esc(r.locatieNaam)}</div>
@@ -1331,7 +1486,7 @@ function renderTabel(){
   const totP=filtered.reduce((s,r)=>s+(r.privKm||0),0);
   const totA=filtered.reduce((s,r)=>s+(r.afgelegdKm||0),0);
   tfoot.innerHTML=`<tr>
-    <td colspan="4" style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Totaal ${yr}</td>
+    <td colspan="5" style="color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.08em">Totaal ${yr}</td>
     <td class="mono text-right" style="color:#f1f5f9">${fmt(totA)}</td>
     <td class="mono text-right" style="color:#34d399">${fmt(totW)}</td>
     <td class="mono text-right" style="color:#f87171">${fmtPriv(totP)}</td>
@@ -1504,9 +1659,10 @@ function exportCSV(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
   const filtered=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
   if(!filtered.length){ toast('Geen ritten om te exporteren'); return; }
-  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km','Opmerking','Gelogd op']];
+  const rows=[['Datum','Voertuig','Kenteken','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km','Opmerking','Gelogd op']];
   filtered.forEach(r=>rows.push([
-    r.datum, r.eindKm, r.locatieNaam, r.locatiePostcode, r.locatiePlaats,
+    r.datum, r.voertuigLabel||'', r.voertuigKenteken||'',
+    r.eindKm, r.locatieNaam, r.locatiePostcode, r.locatiePlaats,
     r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé',
     r.isOmweg?'Ja':'Nee',
     r.afgelegdKm, r.werkKm||0, r.privKm||0, r.opmerking||'',
