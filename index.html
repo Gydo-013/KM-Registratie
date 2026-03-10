@@ -918,6 +918,21 @@ function toggleSwitch(key){
     document.getElementById('lbl-werk-off').style.setProperty('color',!isW?'#f87171':'#94a3b8');
     document.getElementById('lbl-werk-on').style.color=isW?'#f59e0b':'#94a3b8';
     document.getElementById('lbl-werk-on').style.fontWeight=isW?'700':'500';
+    // Blokkeer omweg als privé actief is
+    const omwegRow = document.getElementById('track-isOmweg').closest('.toggle-row');
+    if(!isW){
+      // Privé aan: zet omweg uit en blokkeer
+      ritState.isOmweg = false;
+      document.getElementById('track-isOmweg').className='toggle-track';
+      document.getElementById('lbl-omweg-on').style.color='#64748b';
+      document.getElementById('lbl-omweg-on').style.fontWeight='500';
+      document.getElementById('richting-wrap').style.display='none';
+      omwegRow.style.opacity='.35';
+      omwegRow.style.pointerEvents='none';
+    } else {
+      omwegRow.style.opacity='1';
+      omwegRow.style.pointerEvents='auto';
+    }
   }
   if(key==='isOmweg'){
     const isO=ritState.isOmweg;
@@ -1073,7 +1088,8 @@ function addRit(){
     id:Date.now(), datum, eindKm:huidig,
     locatieId: loc.id||null, locatieNaam:loc.naam, locatiePostcode:loc.postcode, locatiePlaats:loc.plaats,
     isWerk:ritState.isWerk, isOmweg:ritState.isOmweg, omwegRichting:ritState.omwegRichting,
-    afgelegdKm:afgelegd, werkKm, privKm, opmerking
+    afgelegdKm:afgelegd, werkKm, privKm, opmerking,
+    logTijd: new Date().toLocaleString('nl-NL', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
   });
   save();
   appendRitToSheet(ritten[ritten.length-1]);
@@ -1467,12 +1483,13 @@ function exportCSV(){
   const yr=parseInt(document.getElementById('filter-jaar').value)||new Date().getFullYear();
   const filtered=ritten.filter(r=>new Date(r.datum).getFullYear()===yr);
   if(!filtered.length){ toast('Geen ritten om te exporteren'); return; }
-  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km','Opmerking']];
+  const rows=[['Datum','Eindstand km','Locatie','Postcode','Plaats','Soort','Omweg','Totaal km','Werk km','Privé km','Opmerking','Gelogd op']];
   filtered.forEach(r=>rows.push([
     r.datum, r.eindKm, r.locatieNaam, r.locatiePostcode, r.locatiePlaats,
     r.isOmweg?'Omweg':r.isWerk?'Werk':'Privé',
     r.isOmweg?'Ja':'Nee',
-    r.afgelegdKm, r.werkKm||0, r.privKm||0, r.opmerking||''
+    r.afgelegdKm, r.werkKm||0, r.privKm||0, r.opmerking||'',
+    r.logTijd || ''
   ]));
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
