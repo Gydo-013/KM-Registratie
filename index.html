@@ -822,6 +822,12 @@ function delLocatie(id){
   renderLocaties();
   renderLokDropdown();
 }
+function toggleFavoriet(id){
+  const l=locaties.find(l=>l.id===id);
+  if(l) l.favoriet=l.favoriet?0:1;
+  save();
+  renderLocaties();
+}
 function exportLocaties(){
   if(!locaties.length){ toast('Geen locaties om te exporteren'); return; }
   const rows=[['Naam','Postcode','Plaats']];
@@ -882,11 +888,17 @@ function renderLocaties(){
   document.getElementById('loc-list-title').textContent=`Opgeslagen locaties (${locaties.length})`;
   if(!locaties.length){ ul.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  ul.innerHTML=locaties.map(l=>`
+  const sorted=[...locaties].sort((a,b)=>(b.favoriet||0)-(a.favoriet||0));
+  ul.innerHTML=sorted.map(l=>`
     <div class="loc-item">
-      <div>
-        <div class="loc-item-name">${esc(l.naam)}</div>
-        <div class="loc-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <button class="del-btn" ontouchend="toggleFavoriet(${l.id})" onclick="toggleFavoriet(${l.id})" title="Favoriet" style="color:${l.favoriet?'#f59e0b':'#334155'};flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${l.favoriet?'#f59e0b':'none'}" stroke="${l.favoriet?'#f59e0b':'#475569'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <div>
+          <div class="loc-item-name">${esc(l.naam)}</div>
+          <div class="loc-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
+        </div>
       </div>
       <button class="del-btn" ontouchend="delLocatie(${l.id})" onclick="delLocatie(${l.id})">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
@@ -979,17 +991,27 @@ function getPrevKm(){
 }
 
 // Location dropdown in rit form
+function sortedLocs(filter=''){
+  return locaties
+    .filter(l=>
+      !filter ||
+      l.naam.toLowerCase().includes(filter.toLowerCase())||
+      l.postcode.toLowerCase().includes(filter.toLowerCase())||
+      l.plaats.toLowerCase().includes(filter.toLowerCase())
+    )
+    .sort((a,b)=>(b.favoriet||0)-(a.favoriet||0));
+}
+
 function renderLokDropdown(filter=''){
   const list=document.getElementById('loc-list-dd');
-  const matches=locaties.filter(l=>
-    l.naam.toLowerCase().includes(filter.toLowerCase())||
-    l.postcode.toLowerCase().includes(filter.toLowerCase())||
-    l.plaats.toLowerCase().includes(filter.toLowerCase())
-  );
+  const matches=sortedLocs(filter);
   if(!matches.length){ list.style.display='none'; return; }
   list.innerHTML=matches.map(l=>`
     <div class="dropdown-item" onmousedown="selectLoc(${l.id})">
-      <div class="dropdown-item-name">${esc(l.naam)}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${l.favoriet?'<svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':''}
+        <div class="dropdown-item-name">${esc(l.naam)}</div>
+      </div>
       <div class="dropdown-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
     </div>`).join('');
   list.style.display='block';
@@ -1385,15 +1407,14 @@ function clearEditLoc(){
 function filterEditLocs(){
   const q = document.getElementById('edit-loc-search').value;
   const list = document.getElementById('edit-loc-list-dd');
-  const matches = locaties.filter(l=>
-    l.naam.toLowerCase().includes(q.toLowerCase())||
-    l.postcode.toLowerCase().includes(q.toLowerCase())||
-    l.plaats.toLowerCase().includes(q.toLowerCase())
-  );
+  const matches = sortedLocs(q);
   if(!matches.length){ list.style.display='none'; return; }
   list.innerHTML = matches.map(l=>`
     <div class="dropdown-item" onmousedown="selectEditLoc(${l.id})">
-      <div class="dropdown-item-name">${esc(l.naam)}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${l.favoriet?'<svg width="12" height="12" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':''}
+        <div class="dropdown-item-name">${esc(l.naam)}</div>
+      </div>
       <div class="dropdown-item-sub mono">${esc(l.postcode)} · ${esc(l.plaats)}</div>
     </div>`).join('');
   list.style.display='block';
