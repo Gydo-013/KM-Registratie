@@ -758,6 +758,7 @@ function importLocaties(input){
   reader.readAsText(file,'UTF-8');
 }
 
+function renderLocaties(){
   const ul=document.getElementById('loc-list-ul');
   const empty=document.getElementById('loc-empty');
   document.getElementById('loc-list-title').textContent=`Opgeslagen locaties (${locaties.length})`;
