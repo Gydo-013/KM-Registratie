@@ -632,7 +632,13 @@
             <span class="inp-suffix">km</span>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="saveSettings()" style="align-self:flex-start" id="btn-save-vt">Opslaan</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveSettings()" style="align-self:flex-start" id="btn-save-vt">Opslaan</button>
+          <button class="btn btn-ghost" onclick="herberekeningAlles()" style="align-self:flex-start" id="btn-herbereken" title="Herberekent alle ritten met de huidige woon-werk en werk-woon instellingen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Herberekenen
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1304,6 +1310,41 @@ function saveSettings(){
   const btn=document.getElementById('btn-save-vt');
   btn.textContent='✓ Opgeslagen!';
   setTimeout(()=>btn.textContent='Opslaan',2000);
+}
+
+// Herberekent ALLE ritten van alle voertuigen volledig opnieuw (vanaf het vroegste punt)
+function herberekeningAlles(){
+  // Groepeer ritten per voertuig en herbereken elke groep volledig
+  const voertuigIds = [...new Set(ritten.map(r=>r.voertuigId))];
+  voertuigIds.forEach(vtId=>{
+    const vtRitten = ritten
+      .filter(r=>r.voertuigId===vtId)
+      .sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
+    vtRitten.forEach(r=>{
+      const rlt = normLogTijd(r);
+      const prevKm = getPrevKmForDate(rlt, r.id, vtId);
+      const afgelegd = Math.max(0, r.eindKm - prevKm);
+      const omwegKm = r.omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
+      let werkKm=0, privKm=0;
+      if(r.isOmweg){
+        werkKm = Math.min(omwegKm, afgelegd);
+        privKm = Math.round(Math.max(0, afgelegd-werkKm)*10)/10;
+      } else {
+        werkKm = r.isWerk ? afgelegd : 0;
+        privKm = Math.round((!r.isWerk ? afgelegd : 0)*10)/10;
+      }
+      r.afgelegdKm = afgelegd;
+      r.werkKm = werkKm;
+      r.privKm = privKm;
+    });
+  });
+  save();
+  renderRitten();
+  const btn=document.getElementById('btn-herbereken');
+  const origHtml = btn.innerHTML;
+  btn.innerHTML='✓ Herberekend!';
+  setTimeout(()=>btn.innerHTML=origHtml,2000);
+  toast('✓ Alle ritten herberekend met huidige instellingen');
 }
 
 function updateTopbar(){
@@ -2218,7 +2259,35 @@ function importCSV(input){
       const nieuw=imported.filter(r=>!existing.has(r.datum+'|'+r.eindKm));
       const dupes=imported.length-nieuw.length;
 
-      ritten=[...ritten,...nieuw].sort((a,b)=>a.datum.localeCompare(b.datum));
+      // Samenvoegen en chronologisch sorteren
+      ritten=[...ritten,...nieuw].sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
+
+      // Herbereken alle ritten per voertuig volledig opnieuw op basis van de chronologische volgorde.
+      // Zo gaat de app altijd verder vanaf de meest recente stand, ongeacht wanneer de CSV-data vandaan komt.
+      const vtIds = [...new Set(ritten.map(r=>r.voertuigId))];
+      vtIds.forEach(vtId=>{
+        const vtRitten = ritten
+          .filter(r=>r.voertuigId===vtId)
+          .sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
+        vtRitten.forEach(r=>{
+          const rlt = normLogTijd(r);
+          const prevKm = getPrevKmForDate(rlt, r.id, vtId);
+          const afgelegd = Math.max(0, r.eindKm - prevKm);
+          const omwegKm = r.omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
+          let werkKm=0, privKm=0;
+          if(r.isOmweg){
+            werkKm = Math.min(omwegKm, afgelegd);
+            privKm = Math.round(Math.max(0, afgelegd-werkKm)*10)/10;
+          } else {
+            werkKm = r.isWerk ? afgelegd : 0;
+            privKm = Math.round((!r.isWerk ? afgelegd : 0)*10)/10;
+          }
+          r.afgelegdKm = afgelegd;
+          r.werkKm = werkKm;
+          r.privKm = privKm;
+        });
+      });
+
       save();
       renderRitten();
       input.value='';
