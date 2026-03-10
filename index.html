@@ -325,7 +325,7 @@
         <div class="form-grid form-grid-2">
           <div class="field">
             <label>Datum</label>
-            <input class="inp" type="date" id="rit-datum"/>
+            <input class="inp" type="date" id="rit-datum" onchange="updatePreview()"/>
           </div>
           <div class="field">
             <label>Eindstand km <span class="err" id="err-eindkm"></span></label>
@@ -1264,11 +1264,20 @@ function updatePreview(){
   document.getElementById('prev-priv').textContent=fmtPriv(priv);
 }
 
-function getPrevKm(){
+function getPrevKmForDate(datum, excludeId){
+  // Zoek de eindstand van de laatste rit vóór deze datum (voor hetzelfde voertuig)
   const v = getActiefVoertuig();
   const beginKm = v ? (v.beginKm||0) : (parseFloat(settings.beginKm)||0);
-  const vtRitten = v ? ritten.filter(r=>r.voertuigId===v.id) : ritten;
+  const vtRitten = (v ? ritten.filter(r=>r.voertuigId===v.id) : ritten)
+    .filter(r=>r.id!==excludeId)
+    .filter(r=>r.datum <= datum)
+    .sort((a,b)=> a.datum!==b.datum ? a.datum.localeCompare(b.datum) : (a.logTijd||'').localeCompare(b.logTijd||''));
   return vtRitten.length ? vtRitten[vtRitten.length-1].eindKm : beginKm;
+}
+
+function getPrevKm(){
+  const datum = document.getElementById('rit-datum').value || new Date().toISOString().split('T')[0];
+  return getPrevKmForDate(datum, null);
 }
 
 // Location dropdown in rit form
@@ -1828,7 +1837,7 @@ function saveEditRit(){
     locatiePostcode=ritten[idx].locatiePostcode; locatiePlaats=ritten[idx].locatiePlaats;
   }
 
-  const prevKm = idx > 0 ? ritten[idx-1].eindKm : (vtObj?.beginKm||parseFloat(settings.beginKm)||0);
+  const prevKm = getPrevKmForDate(datum, editId) ;
   const afgelegd = Math.max(0, eindKm - prevKm);
   const omwegKm = omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
   let werkKm=0, privKm=0;
