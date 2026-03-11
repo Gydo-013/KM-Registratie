@@ -268,7 +268,7 @@
     <div class="topbar-brand">
       <div class="brand-dot"></div>
       <span class="brand-title">KM REGISTRATIE</span>
-      <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;letter-spacing:.06em;user-select:none;pointer-events:none;background:var(--clr-card);padding:2px 6px;border-radius:4px;border:1px solid #334155">v1.37</span>
+      <span style="font-size:10px;color:#64748b;margin-left:6px;font-weight:600;letter-spacing:.06em;user-select:none;pointer-events:none;background:var(--clr-card);padding:2px 6px;border-radius:4px;border:1px solid #334155">v1.38</span>
       <span class="brand-sub" id="topbar-sub"></span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -939,8 +939,8 @@
     <div style="font-size:11px;color:#64748b;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Versiegeschiedenis</div>
     <!-- Nieuwste versie altijd zichtbaar -->
     <div style="font-size:12px;line-height:1.8;margin-bottom:6px">
-      <span style="color:var(--clr-accent);font-weight:700">v1.37</span>
-      <span style="color:#94a3b8;margin-left:6px">Verbruik op voertuig, herberekenen, CSV-import fixes, gegevensbeheer</span>
+      <span style="color:var(--clr-accent);font-weight:700">v1.38</span>
+      <span style="color:#94a3b8;margin-left:6px">CSV-import verbeterd, gereden km invoer, voertuigen auto-aanmaken, gegevensbeheer, tab-uitlijning</span>
     </div>
     <!-- Oudere versies achter pulldown -->
     <details>
@@ -949,7 +949,7 @@
         Eerdere versies
       </summary>
       <div style="font-size:11px;color:#64748b;line-height:2;margin-top:8px;padding-top:8px;border-top:1px solid var(--clr-card)">
-        <div><span style="color:#475569;font-weight:600">v1.37</span> &nbsp;Tabblad Verbruik: tankbeurten, laden, grafiek</div>
+        <div><span style="color:#475569;font-weight:600">v1.37</span> &nbsp;Versiegeschiedenis naar Instellingen, gegevensbeheer, gelijkmatige tab-uitlijning</div>
         <div><span style="color:#475569;font-weight:600">v1.35</span> &nbsp;Voertuigkleur, 4e modus &quot;Voertuig kleur&quot;, Auto systeem-aware</div>
         <div><span style="color:#475569;font-weight:600">v1.34</span> &nbsp;Licht/Donker/Auto kleurmodus + versienummer zichtbaar</div>
         <div><span style="color:#475569;font-weight:600">v1.33</span> &nbsp;App instellingen: thema + brandstoftype voertuig</div>
@@ -1631,12 +1631,13 @@ function getPrevKm(){
 }
 
 function herbereken(gewijzigdLogTijd, voertuigId){
+  // Herbereken ALLE ritten van dit voertuig chronologisch
+  // zodat afgelegdKm, werkKm en privKm altijd kloppen na elke mutatie
   const vtRitten = ritten
     .filter(r=>r.voertuigId===voertuigId)
     .sort((a,b)=>normLogTijd(a).localeCompare(normLogTijd(b)));
   vtRitten.forEach(r=>{
     const rlt = normLogTijd(r);
-    if(rlt <= gewijzigdLogTijd) return;
     const prevKm = getPrevKmForDate(rlt, r.id, voertuigId);
     const afgelegd = Math.max(0, r.eindKm - prevKm);
     const omwegKm = r.omwegRichting==='werkwoon' ? (parseFloat(settings.werkWoonKm)||0) : (parseFloat(settings.woonWerkKm)||0);
@@ -2057,7 +2058,10 @@ function renderTabel(){
 }
 
 function delRit(id){
+  const r = ritten.find(r=>r.id===id);
+  const voertuigId = r?.voertuigId||null;
   ritten=ritten.filter(r=>r.id!==id);
+  herbereken(null, voertuigId);
   save();
   renderRitten();
   toast('Rit verwijderd');
