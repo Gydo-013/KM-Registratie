@@ -1793,8 +1793,8 @@ function addRit(){
       document.getElementById('err-eindkm').textContent='';
     }
   } else {
-    if(!eindVal||isNaN(huidig)||huidig<=prevKm){
-      document.getElementById('err-eindkm').textContent=`moet > ${fmt(prevKm)} km zijn`;
+    if(!eindVal||isNaN(huidig)||huidig<prevKm){
+      document.getElementById('err-eindkm').textContent=`moet ≥ ${fmt(prevKm)} km zijn`;
       document.getElementById('rit-eindkm').classList.add('err');
       ok=false;
     } else {
