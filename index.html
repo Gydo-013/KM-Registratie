@@ -343,7 +343,14 @@
           <div class="field">
             <label>Eindstand km <span class="err" id="err-eindkm"></span></label>
             <div class="inp-wrap">
-              <input class="inp" type="number" id="rit-eindkm" placeholder="bijv. 12500" inputmode="numeric"/>
+              <input class="inp" type="number" id="rit-eindkm" placeholder="bijv. 12500" inputmode="numeric" oninput="onEindkmInput()"/>
+              <span class="inp-suffix">km</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Gereden km <span style="color:#475569;font-weight:400;font-size:10px;text-transform:none">(alternatief)</span></label>
+            <div class="inp-wrap">
+              <input class="inp" type="number" id="rit-geredenkm" placeholder="bijv. 42" inputmode="numeric" oninput="onGeredenkmInput()"/>
               <span class="inp-suffix">km</span>
             </div>
           </div>
@@ -1720,21 +1727,79 @@ function clearLoc(){
   document.getElementById('loc-selected-pill').style.display='none';
 }
 
+function onEindkmInput(){
+  const v = document.getElementById('rit-eindkm').value;
+  if(v) document.getElementById('rit-geredenkm').value = '';
+}
+function onGeredenkmInput(){
+  const v = document.getElementById('rit-geredenkm').value;
+  if(v){
+    // Vul eindstand in als de vorige eindstand (zelfde stand = gereden km worden verrekend)
+    const prev = getPrevKm();
+    document.getElementById('rit-eindkm').value = prev || '';
+  }
+}
+
+function verwerkGeredenKm(geredenKm, voertuigId, logTijdNieuw){
+  // Zoek terug (nieuwste eerst) naar de eerste rit met privé-km's.
+  // Alle eindstanden tussen die rit en de nieuwe rit worden NIET aangepast —
+  // alleen de privé-rit zelf krijgt minder privé-km's en een lagere eindstand.
+  // De eindstand van alle tussenliggende werkritten worden ook verlaagd zodat
+  // de kilometerstand consistent blijft.
+
+  const vtRitten = ritten
+    .filter(r => r.voertuigId === voertuigId && normLogTijd(r) < logTijdNieuw)
+    .sort((a,b) => normLogTijd(b).localeCompare(normLogTijd(a)));
+
+  // Vind de eerste privé-rit terug in de tijd
+  const privRitIdx = vtRitten.findIndex(r => r.privKm > 0);
+  if(privRitIdx === -1){
+    // Geen privé-rit gevonden: niets aanpassen
+    return;
+  }
+
+  const privRit = vtRitten[privRitIdx];
+  const aftrek = Math.min(geredenKm, privRit.privKm);
+
+  // Verlaag de privé-rit: minder privékm, minder afgelegd, lagere eindstand
+  privRit.privKm    = Math.round((privRit.privKm - aftrek) * 10) / 10;
+  privRit.afgelegdKm= Math.round((privRit.afgelegdKm - aftrek) * 10) / 10;
+  privRit.eindKm    = privRit.eindKm - aftrek;
+
+  // Verlaag ook de eindstanden van alle werkritten tussen de privé-rit en de nieuwe rit
+  // zodat de kilometerteller consistent blijft
+  for(let i = 0; i < privRitIdx; i++){
+    vtRitten[i].eindKm = vtRitten[i].eindKm - aftrek;
+  }
+}
+
 function addRit(){
   const datum=document.getElementById('rit-datum').value;
   const eindVal=document.getElementById('rit-eindkm').value;
+  const geredenVal=document.getElementById('rit-geredenkm').value;
+  const gebruikGereden = !!geredenVal && !eindVal;
   const prevKm=getPrevKm();
-  const huidig=parseFloat(eindVal)||0;
+  const huidig = gebruikGereden ? prevKm : (parseFloat(eindVal)||0);
   let ok=true;
 
   if(!datum){ ok=false; }
-  if(!eindVal||isNaN(huidig)||huidig<=prevKm){
-    document.getElementById('err-eindkm').textContent=`moet > ${fmt(prevKm)} km zijn`;
-    document.getElementById('rit-eindkm').classList.add('err');
-    ok=false;
+  if(gebruikGereden){
+    const gereden = parseFloat(geredenVal)||0;
+    if(!gereden || gereden <= 0){
+      document.getElementById('err-eindkm').textContent='Vul een geldig aantal km in';
+      ok=false;
+    } else {
+      document.getElementById('err-eindkm').textContent='';
+    }
   } else {
-    document.getElementById('err-eindkm').textContent='';
-    document.getElementById('rit-eindkm').classList.remove('err');
+    if(!eindVal||isNaN(huidig)||huidig<=prevKm){
+      document.getElementById('err-eindkm').textContent=`moet > ${fmt(prevKm)} km zijn`;
+      document.getElementById('rit-eindkm').classList.add('err');
+      ok=false;
+    } else {
+      document.getElementById('err-eindkm').textContent='';
+      document.getElementById('rit-eindkm').classList.remove('err');
+    }
   }
 
   const overige = getOverigeLoc();
@@ -1746,7 +1811,8 @@ function addRit(){
   }
   if(!ok) return;
 
-  const afgelegd=huidig-prevKm;
+  const geredenKmVal = parseFloat(document.getElementById('rit-geredenkm').value)||0;
+  const afgelegd = gebruikGereden ? geredenKmVal : (huidig-prevKm);
   let werkKm=0,privKm=0;
   if(ritState.isOmweg){
     const omwegKm=getOmwegKm();
@@ -1777,10 +1843,15 @@ function addRit(){
   });
   const nieuweLt = ritten[ritten.length-1].logTijd;
   herbereken(nieuweLt, av?.id||null);
+  // Als gereden-km modus: verwerk de km's terug in vorige ritten
+  if(gebruikGereden && geredenKmVal > 0){
+    verwerkGeredenKm(geredenKmVal, av?.id||null, nieuweLt);
+  }
   save();
   appendRitToSheet(ritten[ritten.length-1]);
 
   document.getElementById('rit-eindkm').value='';
+  document.getElementById('rit-geredenkm').value='';
   document.getElementById('rit-opmerking').value='';
   document.getElementById('rit-datum').value = new Date().toISOString().split('T')[0];
   document.getElementById('rit-tijd').value  = new Date().toTimeString().slice(0,8);
@@ -3115,6 +3186,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderLocaties();
   loadVoertuig();
   document.getElementById('rit-eindkm').addEventListener('input', updatePreview);
+  document.getElementById('rit-geredenkm').addEventListener('input', updatePreview);
 });
 
 function loadOverzicht(){
